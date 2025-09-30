@@ -1,3 +1,22 @@
+# Autenticación con Google (Firebase)
+
+1. Crea un proyecto en Firebase Console y habilita Google como proveedor de Auth.
+2. Copia las credenciales Web y pégalas en `src/environments/environment.ts` y `environment.prod.ts`:
+
+```
+export const environment = {
+	production: false,
+	firebase: {
+		apiKey: '...'
+		// ... resto de campos
+	}
+};
+```
+
+3. (Opcional) Configura dominios autorizados y SHA si usas apps nativas.
+4. Ejecuta la app y prueba el botón “Continuar con Google”.
+
+> Nota: Ya hay `AuthService` con `googleSignIn()` y el módulo inicializa Firebase y Auth.
 # ProyectoPed
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.14.

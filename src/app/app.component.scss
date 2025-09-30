@@ -1,0 +1,10 @@
+/* App shell layout styles */
+:host {
+    display: block;
+    min-height: 100vh;
+}
+
+main {
+    min-height: calc(100vh - 200px); /* leave space for navbar + footer */
+    display: block;
+}

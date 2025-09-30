@@ -1,0 +1,30 @@
+<section class="servicios">
+  <div class="container">
+    <h1>Servicios</h1>
+
+    <div class="carousel">
+      <button class="nav prev" type="button" (click)="prev()" aria-label="anterior">‹</button>
+      <div class="viewport" (mouseenter)="pauseAutoplay()" (mouseleave)="resumeAutoplay()"
+           (touchstart)="onTouchStart($event)" (touchmove.capture)="onTouchMoveCapture($event)" (touchend)="onTouchEndFinal()">
+        <!-- La pista se mueve por páginas (100% por página) -->
+        <div class="track" [style.transform]="'translateX(' + (-active * 100) + '%)'">
+          <!-- Página virtual: repetimos los items y confiamos en flex para mostrar itemsPerView en cada página visible -->
+          <div class="slide" *ngFor="let s of items" [style.flex]="'0 0 calc(' + (100/itemsPerView) + '% - 16px)'"><!-- gap compensation -->
+            <div class="card">
+              <div class="icon" aria-hidden="true"></div>
+              <h3>{{ s.title }}</h3>
+              <div class="price">{{ s.price }}</div>
+              <p>{{ s.desc }}</p>
+              <a class="cta" href="#">Agendar cita</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="nav next" type="button" (click)="next()" aria-label="siguiente">›</button>
+    </div>
+
+    <div class="dots" role="tablist" aria-label="Paginación de servicios">
+      <button *ngFor="let p of pages; index as i" role="tab" [attr.aria-selected]="i===active" [class.active]="i===active" (click)="active=i" [attr.aria-label]="'ir a página ' + (i+1)"></button>
+    </div>
+  </div>
+</section>

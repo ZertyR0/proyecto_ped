@@ -1,0 +1,284 @@
+.home-container {
+  min-height: calc(100vh - 80px);
+  background: linear-gradient(135deg, #f6f9ff 0%, #e8f2ff 50%, #dbeaff 100%);
+  
+  .hero-section {
+    padding: 3rem 0;
+    max-width: 1200px;
+    margin: 0 auto;
+    
+    .hero-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+      padding: 0 2rem;
+      
+      .text-section {
+        .hero-title {
+          font-size: 3.5rem;
+          font-weight: 300;
+          color: #333;
+          line-height: 1.2;
+          margin-bottom: 2rem;
+          
+          .brand-name {
+            color: #4A90E2;
+            font-weight: 600;
+          }
+        }
+        
+        .hero-description {
+          font-size: 1.1rem;
+          color: #666;
+          line-height: 1.7;
+          margin-bottom: 3rem;
+          text-align: justify;
+        }
+        
+        .action-buttons {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          
+          .btn-location,
+          .btn-phone {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            width: fit-content;
+            min-width: 280px;
+          }
+          
+          .btn-location {
+            background-color: #5B9BD5;
+            color: white;
+            
+            &:hover {
+              background-color: #4A8BC2;
+              transform: translateY(-2px);
+              box-shadow: 0 8px 25px rgba(91, 155, 213, 0.3);
+            }
+          }
+          
+          .btn-phone {
+            background-color: white;
+            color: #5B9BD5;
+            border: 1px solid #5B9BD5;
+            
+            &:hover {
+              background-color: rgba(91, 155, 213, 0.05);
+              transform: translateY(-2px);
+              box-shadow: 0 8px 25px rgba(91, 155, 213, 0.15);
+            }
+          }
+        }
+      }
+      
+      .image-section {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        
+        .doctor-image {
+          position: relative;
+          z-index: 2;
+          
+          img {
+            width: 100%;
+            max-width: 450px;
+            height: auto;
+            border-radius: 20px 20px 20px 100px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+          }
+          
+          .image-overlay {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(91, 155, 213, 0.15), rgba(91, 155, 213, 0.05));
+            border-radius: 20px 20px 20px 100px;
+            z-index: -1;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 1024px) {
+  .home-container {
+    .hero-section {
+      .hero-content {
+        gap: 3rem;
+        
+        .text-section {
+          .hero-title {
+            font-size: 3rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .home-container {
+    .hero-section {
+      padding: 2rem 0;
+      
+      .hero-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        text-align: center;
+        
+        .text-section {
+          order: 2;
+          
+          .hero-title {
+            font-size: 2.5rem;
+          }
+          
+          .hero-description {
+            font-size: 1rem;
+            margin-bottom: 2rem;
+          }
+          
+          .action-buttons {
+            align-items: center;
+            
+            .btn-location,
+            .btn-phone {
+              min-width: 250px;
+              justify-content: center;
+            }
+          }
+        }
+        
+        .image-section {
+          order: 1;
+          
+          .doctor-image img {
+            max-width: 300px;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .home-container {
+    .hero-section {
+      .hero-content {
+        padding: 0 1rem;
+        
+        .text-section {
+          .hero-title {
+            font-size: 2rem;
+          }
+          
+          .action-buttons {
+            .btn-location,
+            .btn-phone {
+              min-width: 200px;
+              padding: 0.8rem 1rem;
+              font-size: 0.9rem;
+            }
+          }
+        }
+        
+        .image-section {
+          .doctor-image img {
+            max-width: 250px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Sección de servicios
+.services-preview {
+  padding: 4rem 0;
+  background: white;
+  
+  .services-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    
+    .service-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 15px;
+      border: 1px solid #f0f4f8;
+      text-align: center;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(91, 155, 213, 0.15);
+        border-color: rgba(91, 155, 213, 0.2);
+      }
+      
+      .service-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 1.5rem;
+        background: rgba(91, 155, 213, 0.1);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      h3 {
+        color: #333;
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+      
+      p {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+      }
+      
+      .ver-mas {
+        color: #5B9BD5;
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        
+        &:after {
+          content: '→';
+          transition: transform 0.3s ease;
+        }
+        
+        &:hover:after {
+          transform: translateX(3px);
+        }
+      }
+    }
+  }
+}

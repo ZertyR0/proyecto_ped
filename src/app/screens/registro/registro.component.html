@@ -1,0 +1,79 @@
+<section class="auth auth-register">
+	<div class="auth-container">
+		<h1>Registro</h1>
+		<p class="subtitle">Llene la información con cuidado</p>
+
+		<form class="form" [formGroup]="form" (ngSubmit)="submit()">
+			<h3 class="section-title">Información Personal</h3>
+			<div class="grid-2">
+				<label>
+					Nombre (s) *
+					<input type="text" formControlName="nombre" placeholder="Ingresa tu nombre">
+				</label>
+				<label>
+					Apellido Paterno *
+					<input type="text" formControlName="apellidoPaterno" placeholder="Ingresa tu apellido paterno">
+				</label>
+				<label>
+					Apellido  Materno *
+					<input type="text" formControlName="apellidoMaterno" placeholder="Ingresa tu apellido materno">
+				</label>
+				<label>
+					Correo electrónico *
+					<input type="email" formControlName="email" placeholder="Ingresa tu correo electrónico">
+				</label>
+				<label>
+					Teléfono *
+					<input type="tel" formControlName="telefono" placeholder="Ingresa tu número de teléfono">
+				</label>
+				<label>
+					Contraseña *
+					<input type="password" formControlName="password" placeholder="Ingresa tu contraseña">
+				</label>
+			</div>
+
+			<h3 class="section-title">Información de tus hijos</h3>
+			<div formArrayName="hijos" class="hijos">
+				<div class="hijo" *ngFor="let h of hijos.controls; index as i" [formGroupName]="i">
+					<div class="grid-2">
+						<label>
+							Nombre (s) *
+							<input type="text" formControlName="nombre" placeholder="Ingresa su nombre">
+						</label>
+						<label>
+							Apellido Paterno *
+							<input type="text" formControlName="apellidoPaterno" placeholder="Ingresa su apellido paterno">
+						</label>
+						<label>
+							Apellido  Materno *
+							<input type="text" formControlName="apellidoMaterno" placeholder="Ingresa su apellido materno">
+						</label>
+						<label>
+							Fecha de nacimiento *
+							<input type="date" formControlName="fechaNacimiento" placeholder="DD/MM/AAAA">
+						</label>
+						<label>
+							Sexo *
+							<input type="text" formControlName="sexo" placeholder="Ingresa su sexo">
+						</label>
+						<label>
+							Alergias
+							<input type="text" formControlName="alergias" placeholder="Ingresa sus alergias">
+						</label>
+					</div>
+					<div class="hijo-actions" *ngIf="hijos.length > 1">
+						<button type="button" class="btn-secondary" (click)="eliminarHijo(i)">Eliminar hijo</button>
+					</div>
+				</div>
+			</div>
+
+			<div class="actions">
+				<button type="button" class="btn-link" (click)="agregarHijo()">+ Agregar hijo</button>
+			</div>
+
+			<div class="actions">
+				<button type="submit" class="btn-primary">Registrarse</button>
+			</div>
+		</form>
+	</div>
+</section>

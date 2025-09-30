@@ -1,0 +1,68 @@
+.servicios {
+  background: #f6f9ff;
+  padding: 2rem 0 4rem;
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+  h1 { color: #3b6fcd; margin: 1rem 0 1.5rem; font-weight: 600; }
+
+  .carousel { position: relative; display: block; }
+
+  .viewport { overflow: hidden; width: 100%; padding: 8px 0 56px; }
+
+  .track {
+    display: flex;
+    align-items: stretch;
+    gap: 16px; /* compensa el calc del flex-basis en inline style */
+    transition: transform .45s ease;
+    will-change: transform;
+    padding: 8px 0 32px; /* más espacio para sombras y CTA */
+  }
+
+  .slide { min-width: 0; display: flex; }
+
+  .card {
+  height: 100%; min-height: 280px; overflow: hidden;
+    background: #fff;
+    border: 1px solid #e9eef6;
+  border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    h3 { color: #2e64c5; margin: .25rem 0; font-size: 1.05rem; }
+    .price { color: #2e64c5; font-weight: 700; }
+    p { color: #4b5563; line-height: 1.55; font-size: .95rem; margin: .25rem 0 0; }
+    .cta {
+      margin-top: auto;
+      align-self: flex-start;
+      color: #2e64c5;
+      border: 1px solid #2e64c5;
+      border-radius: 22px;
+      padding: .5rem 1rem;
+      text-decoration: none;
+      transition: background .2s ease, color .2s ease;
+    }
+    .cta:hover { background: #2e64c5; color: #fff; }
+  }
+
+  .nav {
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid #c7d6f6; background: #fff; color: #2e64c5;
+    display: grid; place-items: center; cursor: pointer; transition: background .2s, box-shadow .2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .nav.prev { left: 8px; }
+  .nav.next { right: 8px; }
+  .nav:hover { background: #e9f0ff; }
+
+  .dots { display: flex; gap: .5rem; justify-content: center; margin-top: 1.25rem; }
+  .dots button { width: 8px; height: 8px; border-radius: 50%; border: none; background: #c7d6f6; cursor: pointer; }
+  .dots button.active { background: #2e64c5; }
+
+  @media (max-width: 639px) { h1 { font-size: 1.4rem; } }
+
+  @media (max-width: 768px) {
+    .nav { display: none; }
+  }
+}
