@@ -1,20 +1,30 @@
 import { Injectable, inject } from '@angular/core';
-import { Auth, GoogleAuthProvider, signInWithPopup, signOut, authState, User } from '@angular/fire/auth';
-import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+import { BehaviorSubject, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private auth = inject(Auth);
+  private http = inject(HttpClient);
+  private base = environment.apiBase;
+  private tokenKey = 'auth_token';
+  isLoggedIn$ = new BehaviorSubject<boolean>(!!this.getToken());
 
-  user$: Observable<User | null> = authState(this.auth);
-
-  async googleSignIn(): Promise<User | null> {
-    const provider = new GoogleAuthProvider();
-    const cred = await signInWithPopup(this.auth, provider);
-    return cred.user;
+  login(username: string, password: string) {
+    return this.http.post<{ token: string }>(`${this.base}/token/`, { username, password }).pipe(
+      tap(res => {
+        if (res?.token) {
+          localStorage.setItem(this.tokenKey, res.token);
+          this.isLoggedIn$.next(true);
+        }
+      })
+    );
   }
 
-  async logout(): Promise<void> {
-    await signOut(this.auth);
+  logout() {
+    localStorage.removeItem(this.tokenKey);
+    this.isLoggedIn$.next(false);
   }
+
+  getToken(): string | null { return localStorage.getItem(this.tokenKey); }
 }
