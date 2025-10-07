@@ -3,8 +3,8 @@
     <h1>Iniciar sesión</h1>
     <form class="form" [formGroup]="form" (ngSubmit)="submit()">
       <label>
-        Usuario o email
-        <input formControlName="username" type="text" placeholder="usuario o email">
+        Email
+        <input formControlName="email" type="email" placeholder="tu@email.com">
       </label>
       <label>
         Contraseña
@@ -13,5 +13,13 @@
       <p class="err" *ngIf="error">{{ error }}</p>
       <button type="submit" class="btn-primary" [disabled]="loading">{{ loading ? 'Entrando…' : 'Entrar' }}</button>
     </form>
+    <div class="divider">
+        <span>o</span>
+    </div>
+
+    <button type="button" class="btn-secondary btn-google" (click)="loginWithGoogle()" [disabled]="loading">
+        
+        Continuar con Google
+    </button>
   </div>
 </section>

@@ -12,11 +12,11 @@
 				</label>
 				<label>
 					Apellido Paterno *
-					<input type="text" formControlName="apellidoPaterno" placeholder="Ingresa tu apellido paterno">
+					<input type="text" formControlName="apellidoP" placeholder="Ingresa tu apellido paterno">
 				</label>
 				<label>
 					Apellido  Materno *
-					<input type="text" formControlName="apellidoMaterno" placeholder="Ingresa tu apellido materno">
+					<input type="text" formControlName="apellidoM" placeholder="Ingresa tu apellido materno">
 				</label>
 				<label>
 					Correo electrónico *
@@ -71,9 +71,14 @@
 				<button type="button" class="btn-link" (click)="agregarHijo()">+ Agregar hijo</button>
 			</div>
 
+			<p class="err" *ngIf="errorMsg">{{ errorMsg }}</p>
+
 			<div class="actions">
-				<button type="submit" class="btn-primary">Registrarse</button>
+				<button type="submit" class="btn-primary" [disabled]="loading">
+                    {{ loading ? 'Registrando...' : 'Registrarse' }}
+                </button>
 			</div>
+			
 		</form>
 	</div>
 </section>
