@@ -71,7 +71,7 @@ export class RegistroComponent {
     //    Esto es lo que se enviará a la base de datos.
     //    { emitEvent: false } evita un bucle infinito de actualizaciones.
     this.form.controls['telefono'].setValue(digitsOnly, { emitEvent: false });
-
+ 
     // 3. Aplicamos el formato visual XXX-XXX-XXXX
     let formattedValue = digitsOnly;
     if (digitsOnly.length > 6) {
