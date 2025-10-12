@@ -12,12 +12,31 @@ const routes: Routes = [
   { path: 'registro', loadChildren: () => import('./screens/registro/registro.module').then(m => m.RegistroModule) },
   { path: 'completar-perfil', loadChildren: () => import('./screens/completar-perfil/completar-perfil.module').then(m => m.CompletarPerfilModule) },
   // --- Rutas Protegidas (Requieren inicio de sesión) ---
-  // AÑADE AQUÍ LAS RUTAS QUE NECESITAN PROTECCIÓN
-  /* {
-    path: 'dashboard', // Ejemplo: El panel principal del usuario
-    loadChildren: () => import('./screens/dashboard/dashboard.module').then(m => m.DashboardModule),
-    canActivate: [authGuard] // <-- El guardián protege esta ruta
-  }, */
+  { 
+    path: 'perfil', 
+    loadChildren: () => import('./screens/perfil/perfil.module').then(m => m.PerfilModule),
+    canActivate: [authGuard]
+  },
+  { 
+    path: 'agendar-cita', 
+    loadChildren: () => import('./screens/agendar-cita/agendar-cita.module').then(m => m.AgendarCitaModule),
+    canActivate: [authGuard]
+  },
+  { 
+    path: 'citas-agendadas', 
+    loadChildren: () => import('./screens/citas-agendadas/citas-agendadas.module').then(m => m.CitasAgendadasModule),
+    canActivate: [authGuard]
+  },
+  { 
+    path: 'historial-consultas', 
+    loadChildren: () => import('./screens/historial-consultas/historial-consultas.module').then(m => m.HistorialConsultasModule),
+    canActivate: [authGuard]
+  },
+  { 
+    path: 'historial-recetas', 
+    loadChildren: () => import('./screens/historial-recetas/historial-recetas.module').then(m => m.HistorialRecetasModule),
+    canActivate: [authGuard]
+  },
   { path: '**', redirectTo: 'inicio' }
 ];
 

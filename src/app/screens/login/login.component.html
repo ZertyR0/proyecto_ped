@@ -17,6 +17,7 @@
         <small *ngIf="form.get('password')?.errors?.['required']">La contraseña es requerida.</small>
   </div>
       </label>
+      <p class="success" *ngIf="successMessage">{{ successMessage }}</p>
       <p class="err" *ngIf="error">{{ error }}</p>
       <button type="submit" class="btn-primary" [disabled]="loading">{{ loading ? 'Entrando…' : 'Entrar' }}</button>
     </form>

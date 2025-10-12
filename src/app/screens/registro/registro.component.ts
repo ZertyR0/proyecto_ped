@@ -79,8 +79,13 @@ export class RegistroComponent {
         const userId = userCredential.user.uid;
         await this.auth.saveChildrenData(userId, childrenData);
 
-        // Redirigir al usuario al nuevo screen
-        this.router.navigate(['/servicios']);
+        // Cerrar sesión después del registro para que el usuario inicie sesión manualmente
+        await this.auth.logout();
+        
+        // Redirigir al login con mensaje de éxito
+        this.router.navigate(['/login'], { 
+          queryParams: { mensaje: 'Registro exitoso. Por favor, inicia sesión.' }
+        });
       } else {
         throw new Error('No se pudo crear la cuenta de usuario.');
       }

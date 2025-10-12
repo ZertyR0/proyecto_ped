@@ -1,0 +1,619 @@
+.agendar-cita-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #f8fafc;
+  min-height: calc(100vh - 80px);
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 3rem;
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 1rem 0;
+  }
+
+  p {
+    font-size: 1.2rem;
+    color: #64748b;
+    margin: 0;
+  }
+}
+
+// Progress Steps
+.progress-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 3rem;
+  padding: 0 2rem;
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    span {
+      font-size: 0.9rem;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    &.active {
+      .step-number {
+        background: #5B9BD5;
+        color: white;
+      }
+      span {
+        color: #5B9BD5;
+      }
+    }
+
+    &.completed {
+      .step-number {
+        background: #10b981;
+        color: white;
+      }
+      span {
+        color: #10b981;
+      }
+    }
+  }
+
+  .step-line {
+    width: 80px;
+    height: 2px;
+    background: #e2e8f0;
+    margin: 0 1rem;
+    transition: all 0.3s ease;
+
+    &.completed {
+      background: #10b981;
+    }
+  }
+}
+
+// Step Content
+.step-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+// Calendario
+.calendar-container {
+  padding: 2rem;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+
+  h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #1a202c;
+    margin: 0;
+    text-transform: capitalize;
+  }
+
+  .btn-nav {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: #f1f5f9;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #5B9BD5;
+      color: white;
+      transform: scale(1.05);
+    }
+  }
+}
+
+.calendar-grid {
+  .calendar-header-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    margin-bottom: 1rem;
+
+    .day-header {
+      padding: 1rem;
+      text-align: center;
+      font-weight: 600;
+      color: #64748b;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  .calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+
+    .calendar-day {
+      background: white;
+      padding: 1rem;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+
+      .day-number {
+        font-weight: 500;
+        font-size: 1rem;
+      }
+
+      &.available:hover {
+        background: #f0f9ff;
+        transform: scale(1.05);
+      }
+
+      &.today {
+        background: #dbeafe;
+        color: #2563eb;
+        font-weight: 700;
+      }
+
+      &.past {
+        color: #cbd5e1;
+        cursor: not-allowed;
+      }
+
+      &.other-month {
+        color: #cbd5e1;
+        background: #f8fafc;
+      }
+
+      &.selected {
+        background: #5B9BD5;
+        color: white;
+        font-weight: 700;
+      }
+
+      &.available {
+        &:hover {
+          background: #e0f2fe;
+        }
+      }
+
+      &.clickable {
+        cursor: pointer;
+        
+        &:hover {
+          background: #f0f9ff;
+          transform: scale(1.02);
+          box-shadow: 0 2px 8px rgba(91, 155, 213, 0.2);
+        }
+        
+        &:active {
+          transform: scale(0.98);
+        }
+      }
+    }
+  }
+
+  .loading-calendar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem;
+    color: #64748b;
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f4f6;
+      border-top: 4px solid #5B9BD5;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+  }
+}
+
+// Selección de horario
+.time-selection {
+  padding: 2rem;
+
+  .selected-date-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+
+    h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1a202c;
+      margin: 0;
+      text-transform: capitalize;
+    }
+
+    .btn-change {
+      background: none;
+      border: 1px solid #5B9BD5;
+      color: #5B9BD5;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: #5B9BD5;
+        color: white;
+      }
+    }
+  }
+
+  .time-slots {
+    h4 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #1a202c;
+      margin: 0 0 1.5rem 0;
+    }
+
+    .time-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 1rem;
+
+      .time-slot {
+        padding: 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        background: white;
+        color: #64748b;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+
+        &.available {
+          &:hover {
+            border-color: #5B9BD5;
+            color: #5B9BD5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(91, 155, 213, 0.2);
+          }
+        }
+
+        &.selected {
+          background: #5B9BD5;
+          border-color: #5B9BD5;
+          color: white;
+        }
+
+        &:disabled {
+          background: #f8fafc;
+          border-color: #f1f5f9;
+          color: #cbd5e1;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
+
+// Formulario de datos
+.appointment-form {
+  padding: 2rem;
+
+  .appointment-summary {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+
+    h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #1a202c;
+      margin: 0 0 1rem 0;
+    }
+
+    .summary-item {
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+
+      strong {
+        color: #374151;
+      }
+    }
+
+    .summary-actions {
+      margin-top: 1rem;
+      display: flex;
+      gap: 1rem;
+
+      .btn-change {
+        background: none;
+        border: 1px solid #5B9BD5;
+        color: #5B9BD5;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: #5B9BD5;
+          color: white;
+        }
+      }
+    }
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+
+    label {
+      display: block;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      font-family: inherit;
+
+      &:focus {
+        outline: none;
+        border-color: #5B9BD5;
+        box-shadow: 0 0 0 3px rgba(91, 155, 213, 0.1);
+      }
+
+      &.error {
+        border-color: #ef4444;
+      }
+    }
+
+    .error-msg {
+      color: #ef4444;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2rem;
+
+    .btn-secondary,
+    .btn-primary {
+      padding: 0.75rem 2rem;
+      border-radius: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #64748b;
+
+      &:hover {
+        background: #e2e8f0;
+      }
+    }
+
+    .btn-primary {
+      background: #5B9BD5;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background: #4A8BC2;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(91, 155, 213, 0.3);
+      }
+
+      &:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+// Confirmación
+.confirmation {
+  padding: 3rem;
+  text-align: center;
+
+  .success-icon {
+    margin-bottom: 2rem;
+
+    svg {
+      width: 80px;
+      height: 80px;
+      color: #10b981;
+    }
+  }
+
+  h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 1rem 0;
+  }
+
+  p {
+    font-size: 1.1rem;
+    color: #64748b;
+    margin: 0 0 2rem 0;
+  }
+
+  .appointment-details {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+    text-align: left;
+
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #e2e8f0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .label {
+        font-weight: 600;
+        color: #64748b;
+      }
+
+      .value {
+        color: #1a202c;
+        font-weight: 500;
+
+        &.status-pending {
+          color: #f59e0b;
+          background: #fef3c7;
+          padding: 0.25rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.9rem;
+        }
+      }
+    }
+  }
+
+  .confirmation-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+
+    .btn-primary,
+    .btn-secondary {
+      padding: 0.75rem 2rem;
+      border-radius: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      border: none;
+    }
+
+    .btn-primary {
+      background: #5B9BD5;
+      color: white;
+
+      &:hover {
+        background: #4A8BC2;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(91, 155, 213, 0.3);
+      }
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #64748b;
+
+      &:hover {
+        background: #e2e8f0;
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .agendar-cita-container {
+    padding: 1rem;
+  }
+
+  .page-header h1 {
+    font-size: 2rem;
+  }
+
+  .progress-steps {
+    padding: 0;
+    
+    .step span {
+      display: none;
+    }
+
+    .step-line {
+      width: 40px;
+      margin: 0 0.5rem;
+    }
+  }
+
+  .calendar-header-days,
+  .calendar-days {
+    .day-header,
+    .calendar-day {
+      padding: 0.5rem;
+      font-size: 0.9rem;
+    }
+  }
+
+  .time-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .confirmation-actions {
+    flex-direction: column;
+  }
+}

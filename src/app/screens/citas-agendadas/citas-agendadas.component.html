@@ -1,0 +1,142 @@
+<div class="citas-agendadas-container">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>Citas agendadas</h1>
+    <p>Administra y revisa todas tus citas odontológicas</p>
+    <div class="header-actions">
+      <button class="btn-primary" routerLink="/agendar-cita">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Nueva Cita
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-container">
+    <div class="filter-tabs">
+      <button 
+        *ngFor="let filter of filterOptions"
+        class="filter-tab"
+        [class.active]="isSelectedFilter(filter.value)"
+        (click)="applyFilter(filter.value)">
+        {{ filter.label }}
+        <span class="count" *ngIf="filter.count > 0">{{ filter.count }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="loading-spinner"></div>
+    <p>Cargando citas...</p>
+  </div>
+
+  <!-- Sin citas -->
+  <div class="no-appointments" *ngIf="hasNoAppointments()">
+    <div class="no-appointments-icon">
+      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="16" y1="2" x2="16" y2="6"></line>
+        <line x1="8" y1="2" x2="8" y2="6"></line>
+        <line x1="3" y1="10" x2="21" y2="10"></line>
+      </svg>
+    </div>
+    <h3>No tienes citas {{ isAllFilter() ? '' : getFilterLabel() }}</h3>
+    <p>{{ isAllFilter() ? 'Agenda tu primera cita para comenzar' : 'Cambia el filtro para ver otras citas' }}</p>
+    <button class="btn-primary" routerLink="/agendar-cita" *ngIf="isAllFilter()">
+      Agendar Primera Cita
+    </button>
+  </div>
+
+  <!-- Vista de Lista -->
+  <div class="appointments-list" *ngIf="hasAppointments()">
+    <div class="appointment-card" *ngFor="let appointment of filteredAppointments" [class]="appointment.statusClass">
+      <!-- Header de la cita -->
+      <div class="appointment-header">
+        <div class="appointment-date">
+          <div class="day-name" [class.today]="appointment.isToday">
+            {{ appointment.dayName }}
+          </div>
+          <div class="date">{{ appointment.formattedDate }}</div>
+        </div>
+        <div class="appointment-time">
+          <div class="time">{{ appointment.time }}</div>
+          <div class="status" [class]="appointment.statusClass">
+            {{ appointment.statusText }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Información principal -->
+      <div class="appointment-info">
+        <div class="patient-info">
+          <h3>{{ appointment.childName }}</h3>
+          <p class="reason">{{ appointment.reason }}</p>
+        </div>
+        
+        <div class="appointment-details" *ngIf="appointment.notes">
+          <div class="detail-item">
+            <span class="label">Notas:</span>
+            <span class="value">{{ appointment.notes }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="appointment-actions" *ngIf="canShowActions(appointment)">
+        <button 
+          class="btn-cancel" 
+          *ngIf="appointment.canCancel"
+          (click)="cancelAppointment(appointment)">
+          Cancelar Cita
+        </button>
+        <div class="action-info" *ngIf="isPendingStatus(appointment)">
+          <small>La cita será confirmada por el consultorio</small>
+        </div>
+      </div>
+
+      <!-- Indicador visual del estado -->
+      <div class="status-indicator" [class]="appointment.statusClass"></div>
+    </div>
+  </div>
+
+  <!-- Vista de Calendario Semanal (opcional) -->
+  <div class="calendar-view" *ngIf="false"> <!-- Oculto por defecto, se puede activar -->
+    <div class="calendar-header">
+      <button class="btn-nav" (click)="previousWeek()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15,18 9,12 15,6"></polyline>
+        </svg>
+      </button>
+      <h3>{{ currentWeekRange }}</h3>
+      <button class="btn-nav" (click)="nextWeek()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9,18 15,12 9,6"></polyline>
+        </svg>
+      </button>
+    </div>
+
+    <div class="week-grid">
+      <div class="day-column" *ngFor="let day of getWeekDays()">
+        <div class="day-header">
+          <div class="day-name">{{ day.toLocaleDateString('es-ES', { weekday: 'short' }) }}</div>
+          <div class="day-number" [class.today]="isTodayDate(day)">
+            {{ day.getDate() }}
+          </div>
+        </div>
+        <div class="day-appointments">
+          <div 
+            class="mini-appointment" 
+            *ngFor="let apt of getAppointmentsForDate(day)"
+            [class]="apt.statusClass">
+            <div class="mini-time">{{ apt.time }}</div>
+            <div class="mini-patient">{{ apt.childName.split(' ')[0] }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

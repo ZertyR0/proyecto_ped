@@ -1,0 +1,369 @@
+<div class="historial-recetas-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando historial de recetas...</p>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading" class="main-content">
+    <!-- Header -->
+    <div class="header">
+      <h1>Historial de Recetas Médicas</h1>
+      <div class="header-actions">
+        <button class="btn btn-outline" (click)="exportData()">
+          <i class="fas fa-download"></i>
+          Exportar
+        </button>
+        <button class="btn btn-primary" (click)="switchView('list')" 
+                [class.active]="currentView === 'list'">
+          <i class="fas fa-list"></i>
+          Lista
+        </button>
+        <button class="btn btn-primary" (click)="switchView('bitacora')" 
+                [class.active]="currentView === 'bitacora'">
+          <i class="fas fa-file-medical"></i>
+          Bitácora
+        </button>
+      </div>
+    </div>
+
+    <!-- Vista de Lista -->
+    <div *ngIf="currentView === 'list'" class="list-view">
+      <!-- Filtros principales (como en la imagen) -->
+      <div class="treatment-filters">
+        <h3>Filtrar por tratamiento:</h3>
+        <div class="filter-buttons">
+          <button *ngFor="let treatment of treatmentFilters" 
+                  class="filter-btn"
+                  [class.active]="selectedTreatmentFilter === treatment"
+                  (click)="onTreatmentFilterChange(treatment)">
+            {{ treatment }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtros adicionales -->
+      <div class="filters-section">
+        <div class="filters-row">
+          <div class="filter-group">
+            <label>Buscar:</label>
+            <input type="text" 
+                   class="form-control" 
+                   placeholder="Buscar recetas..."
+                   [(ngModel)]="searchTerm"
+                   (input)="onFilterChange()">
+          </div>
+
+          <div class="filter-group">
+            <label>Paciente:</label>
+            <select class="form-control" 
+                    [(ngModel)]="selectedChild" 
+                    (change)="onFilterChange()">
+              <option value="">Todos los pacientes</option>
+              <option *ngFor="let child of children" [value]="child.id">
+                {{ child.nombre }} {{ child.apellidoPaterno }}
+              </option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Doctor:</label>
+            <select class="form-control" 
+                    [(ngModel)]="selectedDoctor" 
+                    (change)="onFilterChange()">
+              <option value="">Todos los doctores</option>
+              <option *ngFor="let doctor of doctors" [value]="doctor">
+                {{ doctor }}
+              </option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Estado:</label>
+            <select class="form-control" 
+                    [(ngModel)]="selectedStatus" 
+                    (change)="onFilterChange()">
+              <option value="">Todos los estados</option>
+              <option *ngFor="let status of statuses" [value]="status.value">
+                {{ status.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filters-row">
+          <div class="filter-group">
+            <label>Desde:</label>
+            <input type="date" 
+                   class="form-control" 
+                   [(ngModel)]="dateFrom"
+                   (change)="onFilterChange()">
+          </div>
+
+          <div class="filter-group">
+            <label>Hasta:</label>
+            <input type="date" 
+                   class="form-control" 
+                   [(ngModel)]="dateTo"
+                   (change)="onFilterChange()">
+          </div>
+
+          <div class="filter-group filter-actions">
+            <button class="btn btn-outline" (click)="clearFilters()">
+              <i class="fas fa-times"></i>
+              Limpiar filtros
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de recetas -->
+      <div class="prescriptions-list">
+        <div class="list-header">
+          <h3>Recetas encontradas ({{ filteredPrescriptions.length }})</h3>
+        </div>
+
+        <div *ngIf="filteredPrescriptions.length === 0" class="no-results">
+          <i class="fas fa-search"></i>
+          <p>No se encontraron recetas con los filtros aplicados</p>
+        </div>
+
+        <div class="prescription-cards">
+          <div *ngFor="let prescription of filteredPrescriptions" 
+               class="prescription-card"
+               (click)="selectPrescription(prescription)">
+            <div class="card-header">
+              <div class="prescription-info">
+                <h4>{{ prescription.childName }}</h4>
+                <span class="date">{{ prescription.formattedDate }}</span>
+              </div>
+              <div class="prescription-status">
+                <span class="status-badge" [ngClass]="getStatusClass(prescription.status)">
+                  {{ getStatusText(prescription.status) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="prescription-details">
+                <div class="detail">
+                  <strong>Doctor:</strong> {{ prescription.doctor }}
+                </div>
+                <div class="detail">
+                  <strong>Diagnóstico:</strong> {{ prescription.diagnosis }}
+                </div>
+                <div class="detail">
+                  <strong>Tratamiento:</strong> {{ prescription.treatmentName }}
+                </div>
+                <div class="detail">
+                  <strong>Medicamentos:</strong> {{ prescription.medications.length }} recetados
+                </div>
+                <div class="detail" *ngIf="prescription.cost">
+                  <strong>Costo:</strong> {{ formatCurrency(prescription.totalCost) }}
+                </div>
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <button class="btn btn-sm btn-primary" (click)="selectPrescription(prescription); $event.stopPropagation()">
+                <i class="fas fa-eye"></i>
+                Ver detalles
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vista de Bitácora Detallada -->
+    <div *ngIf="currentView === 'bitacora'" class="bitacora-view">
+      <div *ngIf="!selectedPrescription" class="no-selection">
+        <i class="fas fa-prescription-bottle"></i>
+        <p>Selecciona una receta para ver los detalles</p>
+      </div>
+
+      <div *ngIf="selectedPrescription" class="prescription-details">
+        <!-- Header de la bitácora -->
+        <div class="bitacora-header">
+          <div class="clinic-info">
+            <h2>Clínica Dental Pediátrica</h2>
+            <p>Centro de Salud Dental Especializado</p>
+            <p>Dirección: Av. Principal 123, Santiago</p>
+            <p>Teléfono: +56 2 2345 6789</p>
+          </div>
+          <div class="prescription-header-info">
+            <h3>RECETA MÉDICA</h3>
+            <p><strong>Fecha:</strong> {{ selectedPrescription.formattedDate }}</p>
+            <p><strong>Folio:</strong> {{ selectedPrescription.id }}</p>
+          </div>
+        </div>
+
+        <!-- Información del paciente -->
+        <div class="patient-section">
+          <h3>Información del Paciente</h3>
+          <div class="patient-info-grid">
+            <div class="info-item">
+              <label>Nombre completo:</label>
+              <span>{{ selectedPrescription.childName }}</span>
+            </div>
+            <div class="info-item">
+              <label>Edad:</label>
+              <span>{{ getChildAge(selectedPrescription.childId) }} años</span>
+            </div>
+            <div class="info-item">
+              <label>Fecha de nacimiento:</label>
+              <span>{{ selectedPrescription.patientInfo?.birthDate || 'No especificada' }}</span>
+            </div>
+            <div class="info-item">
+              <label>Peso:</label>
+              <span>{{ selectedPrescription.patientInfo?.weight || 'No especificado' }} kg</span>
+            </div>
+            <div class="info-item">
+              <label>Alergias conocidas:</label>
+              <span>{{ getChildAllergies(selectedPrescription.childId) }}</span>
+            </div>
+            <div class="info-item">
+              <label>Condiciones médicas:</label>
+              <span>{{ selectedPrescription.patientInfo?.medicalConditions?.join(', ') || 'Ninguna' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información del médico -->
+        <div class="doctor-section">
+          <h3>Información del Médico</h3>
+          <div class="doctor-info-grid">
+            <div class="info-item">
+              <label>Nombre:</label>
+              <span>{{ selectedPrescription.doctor }}</span>
+            </div>
+            <div class="info-item">
+              <label>Especialidad:</label>
+              <span>Odontopediatría</span>
+            </div>
+            <div class="info-item">
+              <label>Registro profesional:</label>
+              <span>{{ selectedPrescription.doctorRegistration || 'RP-12345' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Diagnóstico y tratamiento -->
+        <div class="diagnosis-section">
+          <h3>Diagnóstico y Tratamiento</h3>
+          <div class="diagnosis-info">
+            <div class="info-item full-width">
+              <label>Diagnóstico:</label>
+              <p>{{ selectedPrescription.diagnosis }}</p>
+            </div>
+            <div class="info-item full-width">
+              <label>Tratamiento:</label>
+              <p>{{ selectedPrescription.treatmentName }}</p>
+            </div>
+            <div class="info-item full-width" *ngIf="selectedPrescription.notes">
+              <label>Observaciones:</label>
+              <p>{{ selectedPrescription.notes }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Medicamentos prescritos -->
+        <div class="medications-section">
+          <h3>Medicamentos Prescritos</h3>
+          <div class="medications-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Medicamento</th>
+                  <th>Dosificación</th>
+                  <th>Frecuencia</th>
+                  <th>Duración</th>
+                  <th>Instrucciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let medication of selectedPrescription.medications">
+                  <td>
+                    <strong>{{ medication.name }}</strong>
+                    <small *ngIf="medication.activeIngredient">
+                      <br>({{ medication.activeIngredient }})
+                    </small>
+                  </td>
+                  <td>{{ medication.dosage }}</td>
+                  <td>{{ medication.frequency }}</td>
+                  <td>{{ medication.duration }}</td>
+                  <td>
+                    <div class="instructions">
+                      {{ medication.instructions }}
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Instrucciones generales -->
+        <div class="instructions-section" *ngIf="selectedPrescription.generalInstructions">
+          <h3>Instrucciones Generales</h3>
+          <div class="instructions-content">
+            <p>{{ selectedPrescription.generalInstructions }}</p>
+          </div>
+        </div>
+
+        <!-- Estado y seguimiento -->
+        <div class="status-section">
+          <h3>Estado del Tratamiento</h3>
+          <div class="status-info">
+            <div class="current-status">
+              <label>Estado actual:</label>
+              <span class="status-badge" [ngClass]="getStatusClass(selectedPrescription.status)">
+                {{ getStatusText(selectedPrescription.status) }}
+              </span>
+            </div>
+            <div class="status-actions" *ngIf="selectedPrescription.status === 'active'">
+              <button class="btn btn-success" 
+                      (click)="updatePrescriptionStatus(selectedPrescription.id!, 'completed')">
+                <i class="fas fa-check"></i>
+                Marcar como completada
+              </button>
+              <button class="btn btn-danger" 
+                      (click)="updatePrescriptionStatus(selectedPrescription.id!, 'cancelled')">
+                <i class="fas fa-times"></i>
+                Cancelar tratamiento
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones de la receta -->
+        <div class="prescription-actions">
+          <button class="btn btn-primary" (click)="printPrescription()">
+            <i class="fas fa-print"></i>
+            Imprimir receta
+          </button>
+          <button class="btn btn-outline" (click)="switchView('list')">
+            <i class="fas fa-arrow-left"></i>
+            Volver a la lista
+          </button>
+        </div>
+
+        <!-- Footer de la bitácora -->
+        <div class="bitacora-footer">
+          <div class="signature-section">
+            <div class="signature-line">
+              <p>_________________________________</p>
+              <p>Firma del médico</p>
+              <p>{{ selectedPrescription.doctor }}</p>
+            </div>
+          </div>
+          <div class="footer-info">
+            <p><small>Esta receta médica es válida por 30 días desde la fecha de emisión.</small></p>
+            <p><small>Para consultas o emergencias, contactar al teléfono de la clínica.</small></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
