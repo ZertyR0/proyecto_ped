@@ -1,7 +1,4 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
-import { BehaviorSubject, tap, from, Observable  } from 'rxjs';
 import {
   Auth,
   createUserWithEmailAndPassword,
@@ -9,9 +6,11 @@ import {
   signOut,
   signInWithPopup,
   GoogleAuthProvider,
-  User
+  User,
+  EmailAuthProvider,
+  linkWithCredential
 } from '@angular/fire/auth';
-import { Firestore, doc, setDoc, getDoc, collection, addDoc } from '@angular/fire/firestore';
+import { Firestore, doc, setDoc, getDoc, collection, addDoc, updateDoc } from '@angular/fire/firestore';
 import { map } from 'rxjs/operators';
 
 export interface TutorRegisterData {
@@ -107,5 +106,26 @@ export class AuthService {
       return await user.getIdToken(); // Devuelve el token de Firebase si hay usuario
     }
     return null; // Devuelve null si no hay usuario
+  }
+
+  async updateUserProfile(userId: string, data: any) {
+    const userDocRef = doc(this.firestore, `users/${userId}`);
+    return await updateDoc(userDocRef, data);
+  }
+
+  // Permite que los componentes pregunten quién es el usuario actual de forma segura.
+  public get currentUser() {
+    return this.auth.currentUser;
+  }
+
+  // --- NUEVA FUNCIÓN: Vincular Email/Contraseña a una cuenta existente ---
+  async linkEmailAndPassword(email: string, password: string) {
+    if (!this.currentUser) throw new Error('No hay un usuario autenticado para vincular.');
+
+    // 2. Creamos la 'credencial' con el email y la nueva contraseña
+    const credential = EmailAuthProvider.credential(email, password);
+    
+    // 3. Vinculamos esta nueva credencial a la cuenta del usuario actual
+    return await linkWithCredential(this.currentUser, credential);
   }
 }

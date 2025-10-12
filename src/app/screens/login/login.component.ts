@@ -59,16 +59,22 @@ export class LoginComponent {
     this.error = '';
     this.loading = true;
     try {
+      // Primero, inicia la sesión con Google. Esto crea la cuenta en Firebase Auth.
       const result = await this.auth.loginWithGoogle();
+      
+      // Luego, revisamos si el perfil de este usuario ya existe en nuestra base de datos Firestore.
+      //    La función devuelve 'false' si es un usuario nuevo.
       const isNewUser = !(await this.auth.checkGoogleUserProfile(result.user));
 
+      // 3. LA DECISIÓN: Basado en la respuesta, redirigimos.
       if (isNewUser) {
-        // Si es nuevo, lo mandamos a completar su perfil
-        this.router.navigate(['/registro']);
+        // Si es un usuario nuevo, lo mandamos a la pantalla para que complete sus datos.
+        this.router.navigate(['/completar-perfil']);
       } else {
-        // Si ya existía, va directo al panel principal
+        // Si ya es un usuario existente, lo mandamos directo al panel servicios (provisional).
         this.router.navigate(['/servicios']);
       }
+
     } catch (e: any) {
       this.error = this.firebaseErrorToText(e.code);
     } finally {

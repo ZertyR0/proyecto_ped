@@ -5,10 +5,17 @@
       <label>
         Email
         <input formControlName="email" type="email" placeholder="tu@email.com">
+        <div *ngIf="form.get('email')?.invalid && form.get('email')?.touched" class="err-field">
+        <small *ngIf="form.get('email')?.errors?.['required']">El email es requerido.</small>
+        <small *ngIf="form.get('email')?.errors?.['email']">El formato del email no es válido.</small>
+  </div>
       </label>
       <label>
         Contraseña
         <input formControlName="password" type="password" placeholder="••••••••">
+        <div *ngIf="form.get('password')?.invalid && form.get('password')?.touched" class="err-field">
+        <small *ngIf="form.get('password')?.errors?.['required']">La contraseña es requerida.</small>
+  </div>
       </label>
       <p class="err" *ngIf="error">{{ error }}</p>
       <button type="submit" class="btn-primary" [disabled]="loading">{{ loading ? 'Entrando…' : 'Entrar' }}</button>
