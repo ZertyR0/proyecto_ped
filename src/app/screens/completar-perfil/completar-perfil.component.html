@@ -1,7 +1,7 @@
 <section class="auth auth-register">
 	<div class="auth-container">
-		<h1>Registro</h1>
-		<p class="subtitle">Llene la información con cuidado</p>
+		<h1>Completa tu perfil</h1>
+		<p class="subtitle">Necesitamos unos datos más para finalizar tu registro.</p>
 
 		<form class="form" [formGroup]="form" (ngSubmit)="submit()">
 			<h3 class="section-title">Información Personal</h3>
@@ -30,6 +30,14 @@
 					Contraseña *
 					<input type="password" formControlName="password" placeholder="Ingresa tu contraseña">
 				</label>
+				<label>
+    				Confirma tu contraseña *
+    				<input type="password" formControlName="confirmPassword" placeholder="Repite la contraseña">
+				</label>
+				
+				<p class="err" *ngIf="form.errors?.['passwordsMismatch'] && form.touched">
+					Las contraseas no coinciden.
+				</p>
 			</div>
 
 			<h3 class="section-title">Información de tus hijos</h3>
@@ -75,7 +83,7 @@
 
 			<div class="actions">
 				<button type="submit" class="btn-primary" [disabled]="loading">
-                    {{ loading ? 'Registrando...' : 'Registrarse' }}
+                     {{ loading ? 'Guardando...' : 'Guardar Perfil' }}
                 </button>
 			</div>
 			
