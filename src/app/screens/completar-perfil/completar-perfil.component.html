@@ -1,92 +1,125 @@
 <section class="auth auth-register">
-	<div class="auth-container">
-		<h1>Completa tu perfil</h1>
-		<p class="subtitle">Necesitamos unos datos más para finalizar tu registro.</p>
+    <div class="auth-container">
+        <h1>Completa tu perfil</h1>
+        <p class="subtitle">Necesitamos unos datos más para finalizar tu registro.</p>
 
-		<form class="form" [formGroup]="form" (ngSubmit)="submit()">
-			<h3 class="section-title">Información Personal</h3>
-			<div class="grid-2">
-				<label>
-					Nombre (s) *
-					<input type="text" formControlName="nombre" placeholder="Ingresa tu nombre">
-				</label>
-				<label>
-					Apellido Paterno *
-					<input type="text" formControlName="apellidoP" placeholder="Ingresa tu apellido paterno">
-				</label>
-				<label>
-					Apellido  Materno *
-					<input type="text" formControlName="apellidoM" placeholder="Ingresa tu apellido materno">
-				</label>
-				<label>
-					Correo electrónico *
-					<input type="email" formControlName="email" placeholder="Ingresa tu correo electrónico">
-				</label>
-				<label>
-					Teléfono *
-					<input type="tel" formControlName="telefono" placeholder="Ingresa tu número de teléfono">
-				</label>
-				<label>
-					Contraseña *
-					<input type="password" formControlName="password" placeholder="Ingresa tu contraseña">
-				</label>
-				<label>
-    				Confirma tu contraseña *
-    				<input type="password" formControlName="confirmPassword" placeholder="Repite la contraseña">
-				</label>
-				
-				<p class="err" *ngIf="form.errors?.['passwordsMismatch'] && form.touched">
-					Las contraseas no coinciden.
-				</p>
-			</div>
+        <form class="form" [formGroup]="form" (ngSubmit)="submit()">
+            <h3 class="section-title">Información Personal</h3>
+            <div class="grid-2">
+                <label>
+                    Nombre (s) *
+                    <input type="text" formControlName="nombre" placeholder="Ingresa tu nombre">
+                    <div *ngIf="form.get('nombre')?.invalid && form.get('nombre')?.touched" class="err-field">
+                        <small *ngIf="form.get('nombre')?.errors?.['required']">El nombre es requerido.</small>
+                    </div>
+                </label>
+                <label>
+                    Apellido Paterno *
+                    <input type="text" formControlName="apellidoP" placeholder="Ingresa tu apellido paterno">
+                    <div *ngIf="form.get('apellidoP')?.invalid && form.get('apellidoP')?.touched" class="err-field">
+                        <small>El apellido paterno es requerido.</small>
+                    </div>
+                </label>
+                <label>
+                    Apellido Materno *
+                    <input type="text" formControlName="apellidoM" placeholder="Ingresa tu apellido materno">
+                    <div *ngIf="form.get('apellidoM')?.invalid && form.get('apellidoM')?.touched" class="err-field">
+                        <small>El apellido materno es requerido.</small>
+                    </div>
+                </label>
+                <label>
+                    Correo electrónico *
+                    <input type="email" formControlName="email" placeholder="Ingresa tu correo electrónico">
+                </label>
+                <label>
+                    Teléfono *
+                    <input type="tel" formControlName="telefono" (input)="formatPhoneNumber($event)" maxlength="12" placeholder="Ingresa tu número de teléfono">
+                    <div *ngIf="form.get('telefono')?.invalid && form.get('telefono')?.touched" class="err-field">
+                        <small>El teléfono debe tener 10 dígitos.</small>
+                    </div>
+                </label>
+                <label>
+                    Contraseña *
+                    <input type="password" formControlName="password" placeholder="Mínimo 6 caracteres">
+                    <div *ngIf="form.get('password')?.invalid && form.get('password')?.touched" class="err-field">
+                        <small>La contraseña debe tener al menos 6 caracteres.</small>
+                    </div>
+                </label>
+                <label>
+                    Confirma tu contraseña *
+                    <input type="password" formControlName="confirmPassword" placeholder="Repite la contraseña">
+                    <div *ngIf="form.get('confirmPassword')?.invalid && form.get('confirmPassword')?.touched" class="err-field">
+                        <small>Debes confirmar la contraseña.</small>
+                    </div>
+                </label>
+            </div>
 
-			<h3 class="section-title">Información de tus hijos</h3>
-			<div formArrayName="hijos" class="hijos">
-				<div class="hijo" *ngFor="let h of hijos.controls; index as i" [formGroupName]="i">
-					<div class="grid-2">
-						<label>
-							Nombre (s) *
-							<input type="text" formControlName="nombre" placeholder="Ingresa su nombre">
-						</label>
-						<label>
-							Apellido Paterno *
-							<input type="text" formControlName="apellidoPaterno" placeholder="Ingresa su apellido paterno">
-						</label>
-						<label>
-							Apellido  Materno *
-							<input type="text" formControlName="apellidoMaterno" placeholder="Ingresa su apellido materno">
-						</label>
-						<label>
-							Fecha de nacimiento *
-							<input type="date" formControlName="fechaNacimiento" placeholder="DD/MM/AAAA">
-						</label>
-						<label>
-							Sexo *
-							<input type="text" formControlName="sexo" placeholder="Ingresa su sexo">
-						</label>
-						<label>
-							Alergias
-							<input type="text" formControlName="alergias" placeholder="Ingresa sus alergias">
-						</label>
-					</div>
-					<div class="hijo-actions" *ngIf="hijos.length > 1">
-						<button type="button" class="btn-secondary" (click)="eliminarHijo(i)">Eliminar hijo</button>
-					</div>
-				</div>
-			</div>
+            <p class="err" *ngIf="form.hasError('passwordsMismatch') && form.get('confirmPassword')?.touched">
+                Las contraseñas no coinciden.
+            </p>
 
-			<div class="actions">
-				<button type="button" class="btn-link" (click)="agregarHijo()">+ Agregar hijo</button>
-			</div>
+            <h3 class="section-title">Información de tus hijos</h3>
+            <div formArrayName="hijos" class="hijos">
+                <div class="hijo" *ngFor="let hijoForm of hijos.controls; let i = index" [formGroupName]="i">
+                    <div class="grid-2">
+                        <label>
+                            Nombre (s) *
+                            <input type="text" formControlName="nombre" placeholder="Ingresa su nombre">
+                            <div *ngIf="hijoForm.get('nombre')?.invalid && hijoForm.get('nombre')?.touched" class="err-field">
+                                <small>El nombre del hijo es requerido.</small>
+                            </div>
+                        </label>
+                        <label>
+                            Apellido Paterno *
+                            <input type="text" formControlName="apellidoPaterno" placeholder="Ingresa su apellido paterno">
+                            <div *ngIf="hijoForm.get('apellidoPaterno')?.invalid && hijoForm.get('apellidoPaterno')?.touched" class="err-field">
+                                <small>El apellido paterno es requerido.</small>
+                            </div>
+                        </label>
+                        <label>
+                            Apellido Materno *
+                            <input type="text" formControlName="apellidoMaterno" placeholder="Ingresa su apellido materno">
+                            <div *ngIf="hijoForm.get('apellidoMaterno')?.invalid && hijoForm.get('apellidoMaterno')?.touched" class="err-field">
+                                <small>El apellido materno es requerido.</small>
+                            </div>
+                        </label>
+                        <label>
+                            Fecha de nacimiento *
+                            <input type="date" formControlName="fechaNacimiento" placeholder="DD/MM/AAAA">
+                            <div *ngIf="hijoForm.get('fechaNacimiento')?.invalid && hijoForm.get('fechaNacimiento')?.touched" class="err-field">
+                                <small>La fecha de nacimiento es requerida.</small>
+                            </div>
+                        </label>
+                        <label>
+                            Sexo *
+                            <select formControlName="sexo">
+                                <option value="H">Hombre</option>
+                                <option value="M">Mujer</option>
+                            </select>
+                            <div *ngIf="hijoForm.get('sexo')?.invalid && hijoForm.get('sexo')?.touched" class="err-field">
+                                <small>El sexo es requerido.</small>
+                            </div>
+                        </label>
+                        <label>
+                            Alergias
+                            <input type="text" formControlName="alergias" placeholder="Ingresa sus alergias">
+                        </label>
+                    </div>
+                    <div class="hijo-actions" *ngIf="hijos.length > 1">
+                        <button type="button" class="btn-secondary" (click)="eliminarHijo(i)">Eliminar hijo</button>
+                    </div>
+                </div>
+            </div>
 
-			<p class="err" *ngIf="errorMsg">{{ errorMsg }}</p>
-
-			<div class="actions">
-				<button type="submit" class="btn-primary" [disabled]="loading">
-                     {{ loading ? 'Guardando...' : 'Guardar Perfil' }}
+            <div class="actions">
+                <button type="button" class="btn-link" (click)="agregarHijo()">+ Agregar hijo</button>
+            </div>
+            <p class="err" *ngIf="errorMsg">{{ errorMsg }}</p>
+            <div class="actions">
+                <button type="submit" class="btn-primary" [disabled]="loading">
+                    {{ loading ? 'Guardando...' : 'Guardar Perfil' }}
                 </button>
-			</div>
-			
-		</form>
-	</div>
+            </div>
+        </form>
+    </div>
 </section>
