@@ -2,12 +2,12 @@ export const environment = {
   production: true,
   apiBase: '',
   firebase: {
-    apiKey: "AIzaSyDwOkROK73mji9XARjvLwVOBOEedD027GA",
-    authDomain: "dentista-86ad2.firebaseapp.com",
-    projectId: "dentista-86ad2",
-    storageBucket: "dentista-86ad2.firebasestorage.app",
-    messagingSenderId: "530146269419",
-    appId: "1:530146269419:web:fc37a5914a8cc93f3546ae",
-    measurementId: "G-VD1L29T09L"
+    apiKey: "AIzaSyBQ7Curcm1QBbj47Kb4_F8F-fsd-ML2LZ0",
+    authDomain: "dentista-web-1ee07.firebaseapp.com",
+    projectId: "dentista-web-1ee07",
+    storageBucket: "dentista-web-1ee07.firebasestorage.app",
+    messagingSenderId: "1051316974495",
+    appId: "1:1051316974495:web:95f92fe2583e7140d2c3aa",
+    measurementId: "G-E4MVXNRTNL"
   }
 };

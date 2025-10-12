@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router'; // 
 import { AuthService, TutorLoginData } from '../../services/auth.service'; 
+import { fetchSignInMethodsForEmail } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-login',
@@ -25,32 +26,27 @@ export class LoginComponent {
   error = '';
 
   // --- Función para el formulario de Email/Contraseña ---
-  async submit() {
+   async submit() {
     this.error = '';
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
     this.loading = true;
+    
+    // Obtenemos email y password del formulario
+    const { email, password } = this.form.value;
 
     try {
-      // CREAMOS UN OBJETO que cumple con la interfaz 'TutorLoginData'
-      const credentials: TutorLoginData = {
-        email: this.form.value.email!,
-        password: this.form.value.password!
-      };
-
-      // LLAMAMOS AL SERVICIO con 'await' y pasamos el objeto
+      const credentials: TutorLoginData = { email, password };
       await this.auth.login(credentials);
-      
-      // Si todo sale bien, redirigimos al usuario
-      this.router.navigate(['/servicios']); // O a la ruta que prefieras
+      this.router.navigate(['/servicios']);
 
     } catch (e: any) {
-      // MANEJAMOS EL ERROR específico de Firebase
-      this.error = this.firebaseErrorToText(e.code);
+      // Pasamos el objeto de error completo 'e' y el 'email' a nuestro traductor ---
+      this.error = await this.firebaseErrorToText(e, email);
     } finally {
-      this.loading = false; // Esto se ejecuta siempre, haya éxito o error
+      this.loading = false;
     }
   }
 
@@ -66,7 +62,7 @@ export class LoginComponent {
       //    La función devuelve 'false' si es un usuario nuevo.
       const isNewUser = !(await this.auth.checkGoogleUserProfile(result.user));
 
-      // 3. LA DECISIÓN: Basado en la respuesta, redirigimos.
+      // LA DECISIÓN: Basado en la respuesta, redirigimos.
       if (isNewUser) {
         // Si es un usuario nuevo, lo mandamos a la pantalla para que complete sus datos.
         this.router.navigate(['/completar-perfil']);
@@ -76,23 +72,37 @@ export class LoginComponent {
       }
 
     } catch (e: any) {
-      this.error = this.firebaseErrorToText(e.code);
+      this.error = await this.firebaseErrorToText(e, '');
     } finally {
       this.loading = false;
     }
   }
   
   // --- Función auxiliar para traducir errores de Firebase a español ---
-  private firebaseErrorToText(code: string): string {
-    switch (code) {
-      case 'auth/wrong-password':
-        return 'La contraseña es incorrecta.';
-      case 'auth/user-not-found':
-        return 'No se encontró ningún usuario con este correo.';
-      case 'auth/invalid-email':
-        return 'El correo electrónico no es válido.';
-      default:
-        return 'Ocurrió un error al iniciar sesión.';
+  private async firebaseErrorToText(error: any, email: string): Promise<string> {
+    const code = error.code;
+
+    // ---  Usamos el código de error correcto que nos dio la consola ---
+    if (code === 'auth/invalid-login-credentials') {
+      // Verificamos si el usuario quizás se registró con Google.
+      try {
+        const methods = await fetchSignInMethodsForEmail(this.auth.authInstance, email);
+        if (methods.includes('google.com')) {
+          return 'Ese correo fue registrado con Google. Por favor, usa el botón "Continuar con Google".';
+        } else {
+          // Si no, damos un mensaje combinado que es más seguro.
+          return 'El correo o la contraseña son incorrectos.';
+        }
+      } catch {
+        return 'El correo o la contraseña son incorrectos.';
+      }
     }
+    
+    if (code === 'auth/invalid-email') {
+      return 'El correo electrónico no es válido.';
+    }
+
+    // Un mensaje por defecto para cualquier otro error.
+    return 'Ocurrió un error al iniciar sesión.';
   }
 }

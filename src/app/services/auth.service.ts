@@ -118,6 +118,13 @@ export class AuthService {
     return this.auth.currentUser;
   }
 
+  // --- NUEVO GETTER ---
+  // Proporciona acceso público y seguro a la instancia principal de Auth.
+  // La necesitaremos para funciones como fetchSignInMethodsForEmail.
+  public get authInstance(): Auth {
+    return this.auth;
+  }
+
   // --- NUEVA FUNCIÓN: Vincular Email/Contraseña a una cuenta existente ---
   async linkEmailAndPassword(email: string, password: string) {
     if (!this.currentUser) throw new Error('No hay un usuario autenticado para vincular.');
