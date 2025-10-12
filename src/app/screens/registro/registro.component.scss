@@ -9,8 +9,7 @@ h1 { color: #2e64c5; text-align: center; font-size: 2.2rem; margin: 0 0 .25rem; 
 
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 label { display: grid; gap: .35rem; color: #1f3b7e; font-weight: 700; }
-input { padding: .75rem .9rem; border: 1px solid #c7d6f6; border-radius: 10px; outline: none; background: #fff; }
-
+input, select { padding: .75rem .9rem; border: 1px solid #c7d6f6; border-radius: 10px; outline: none; background: #fff; }
 .actions { display: flex; justify-content: center; }
 .btn-primary { background: #2e64c5; color: #fff; border: none; border-radius: 10px; padding: .75rem 1.25rem; cursor: pointer; box-shadow: 0 8px 22px rgba(46,100,197,.25); }
 .btn-secondary { background: #eef3ff; color: #2e64c5; border: 1px solid #2e64c5; border-radius: 10px; padding: .5rem .9rem; cursor: pointer; }
@@ -43,7 +42,7 @@ input { padding: .75rem .9rem; border: 1px solid #c7d6f6; border-radius: 10px; o
   }
 
   label { display: block; color: #3d4a5c; margin-bottom: .35rem; font-weight: 600; }
-  input {
+  input, select {
     width: 100%;
     background: #fff;
     border: 1px solid #e4ecf9;
@@ -57,4 +56,19 @@ input { padding: .75rem .9rem; border: 1px solid #c7d6f6; border-radius: 10px; o
   .btn-secondary { background: #fff; border: 1px solid #2e64c5; color: #2e64c5; border-radius: 10px; padding: .7rem 1rem; cursor: pointer; }
   .btn-primary { background: #2e64c5; color: #fff; border: none; border-radius: 10px; padding: .7rem 1rem; cursor: pointer; }
   .btn-primary:hover { background: #2557b3; }
+}
+select {
+  /* Quita la apariencia por defecto del navegador */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  /* Añade nuestra propia flecha como imagen de fondo */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+
+  /* Añade un poco de espacio a la derecha para que el texto no se monte sobre la flecha */
+  padding-right: 2.5rem;
 }
