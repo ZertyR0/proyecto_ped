@@ -1,6 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router'; // 
+import { Router, ActivatedRoute } from '@angular/router'; 
 import { AuthService, TutorLoginData } from '../../services/auth.service'; 
 import { fetchSignInMethodsForEmail } from '@angular/fire/auth';
 
@@ -9,11 +9,12 @@ import { fetchSignInMethodsForEmail } from '@angular/fire/auth';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   // --- Inyección de servicios ---
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
-  private router = inject(Router); // 
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   // --- Definición del formulario ---
   form: FormGroup = this.fb.group({
@@ -24,6 +25,18 @@ export class LoginComponent {
   // --- Variables de estado ---
   loading = false;
   error = '';
+  successMessage = '';
+
+  ngOnInit() {
+    // Verificar si hay mensaje de éxito desde el registro
+    this.route.queryParams.subscribe(params => {
+      if (params['mensaje']) {
+        this.successMessage = params['mensaje'];
+        // Limpiar el mensaje después de 5 segundos
+        setTimeout(() => this.successMessage = '', 5000);
+      }
+    });
+  }
 
   // --- Función para el formulario de Email/Contraseña ---
    async submit() {
@@ -40,7 +53,7 @@ export class LoginComponent {
     try {
       const credentials: TutorLoginData = { email, password };
       await this.auth.login(credentials);
-      this.router.navigate(['/servicios']);
+      this.router.navigate(['/perfil']);
 
     } catch (e: any) {
       // Pasamos el objeto de error completo 'e' y el 'email' a nuestro traductor ---
@@ -67,8 +80,8 @@ export class LoginComponent {
         // Si es un usuario nuevo, lo mandamos a la pantalla para que complete sus datos.
         this.router.navigate(['/completar-perfil']);
       } else {
-        // Si ya es un usuario existente, lo mandamos directo al panel servicios (provisional).
-        this.router.navigate(['/servicios']);
+        // Si ya es un usuario existente, lo mandamos directo al perfil.
+        this.router.navigate(['/perfil']);
       }
 
     } catch (e: any) {

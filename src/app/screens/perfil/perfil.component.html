@@ -1,0 +1,158 @@
+<div class="perfil-container" *ngIf="!loading">
+  <div class="perfil-header">
+    <div class="perfil-avatar">
+      <div class="avatar-circle">
+        {{ (userProfile?.nombre?.charAt(0) || 'U').toUpperCase() }}
+      </div>
+    </div>
+    <div class="perfil-info">
+      <h1>{{ userProfile?.nombre }} {{ userProfile?.apellidoP }}</h1>
+      <p class="email">{{ currentUser?.email }}</p>
+      <span class="role-badge">{{ userProfile?.rol || 'Usuario' }}</span>
+    </div>
+    <div class="perfil-actions">
+      <button 
+        class="btn-edit" 
+        (click)="toggleEditMode()"
+        [class.active]="editMode">
+        {{ editMode ? 'Cancelar' : 'Editar Perfil' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="perfil-content">
+    <!-- Información Personal -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Información Personal</h2>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="profileForm" *ngIf="editMode; else viewMode">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre(s) *</label>
+              <input 
+                type="text" 
+                formControlName="nombre" 
+                placeholder="Ingresa tu nombre"
+                [class.error]="profileForm.get('nombre')?.invalid && profileForm.get('nombre')?.touched">
+              <div class="error-msg" *ngIf="profileForm.get('nombre')?.invalid && profileForm.get('nombre')?.touched">
+                <small *ngIf="profileForm.get('nombre')?.errors?.['required']">El nombre es requerido</small>
+                <small *ngIf="profileForm.get('nombre')?.errors?.['minlength']">Mínimo 2 caracteres</small>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Apellido Paterno *</label>
+              <input 
+                type="text" 
+                formControlName="apellidoP" 
+                placeholder="Ingresa tu apellido paterno"
+                [class.error]="profileForm.get('apellidoP')?.invalid && profileForm.get('apellidoP')?.touched">
+              <div class="error-msg" *ngIf="profileForm.get('apellidoP')?.invalid && profileForm.get('apellidoP')?.touched">
+                <small *ngIf="profileForm.get('apellidoP')?.errors?.['required']">El apellido paterno es requerido</small>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Apellido Materno</label>
+              <input 
+                type="text" 
+                formControlName="apellidoM" 
+                placeholder="Ingresa tu apellido materno">
+            </div>
+
+            <div class="form-group">
+              <label>Teléfono *</label>
+              <input 
+                type="tel" 
+                formControlName="telefono" 
+                placeholder="Ingresa tu teléfono"
+                [class.error]="profileForm.get('telefono')?.invalid && profileForm.get('telefono')?.touched">
+              <div class="error-msg" *ngIf="profileForm.get('telefono')?.invalid && profileForm.get('telefono')?.touched">
+                <small *ngIf="profileForm.get('telefono')?.errors?.['required']">El teléfono es requerido</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-save" (click)="saveProfile()" [disabled]="profileForm.invalid">
+              Guardar Cambios
+            </button>
+          </div>
+        </form>
+
+        <ng-template #viewMode>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Nombre(s)</label>
+              <span>{{ userProfile?.nombre || 'No disponible' }}</span>
+            </div>
+            <div class="info-item">
+              <label>Apellido Paterno</label>
+              <span>{{ userProfile?.apellidoP || 'No disponible' }}</span>
+            </div>
+            <div class="info-item">
+              <label>Apellido Materno</label>
+              <span>{{ userProfile?.apellidoM || 'No especificado' }}</span>
+            </div>
+            <div class="info-item">
+              <label>Correo electrónico</label>
+              <span>{{ currentUser?.email || 'No disponible' }}</span>
+            </div>
+            <div class="info-item">
+              <label>Teléfono</label>
+              <span>{{ userProfile?.telefono || 'No disponible' }}</span>
+            </div>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Información de los Hijos -->
+    <div class="card" *ngIf="children.length > 0">
+      <div class="card-header">
+        <h2>Información de tus hijos</h2>
+        <button 
+          class="btn-edit-children" 
+          (click)="toggleEditChildrenMode()"
+          [class.active]="editChildrenMode">
+          {{ editChildrenMode ? 'Cancelar' : 'Editar datos de hijo(s)' }}
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="children-grid">
+          <div class="child-card" *ngFor="let child of children; let i = index">
+            <div class="child-header">
+              <h3>{{ child.nombre }} {{ child.apellidoPaterno }}</h3>
+              <span class="age-badge">{{ calculateAge(child.fechaNacimiento) }} años</span>
+            </div>
+            <div class="child-info">
+              <div class="info-row">
+                <span class="label">Apellido Materno:</span>
+                <span class="value">{{ child.apellidoMaterno || 'No especificado' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Fecha de nacimiento:</span>
+                <span class="value">{{ formatDate(child.fechaNacimiento) }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Sexo:</span>
+                <span class="value">{{ child.sexo === 'M' ? 'Masculino' : 'Femenino' }}</span>
+              </div>
+              <div class="info-row" *ngIf="child.alergias">
+                <span class="label">Alergias:</span>
+                <span class="value allergies">{{ child.alergias }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="loading-container" *ngIf="loading">
+  <div class="loading-spinner"></div>
+  <p>Cargando perfil...</p>
+</div>

@@ -1,0 +1,212 @@
+<div class="historial-container">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>Historial de Consultas</h1>
+    <p>Consulta el registro completo de todas las visitas médicas</p>
+    <div class="header-actions">
+      <button class="btn-export" (click)="exportData()" *ngIf="filteredConsultations.length > 0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7,10 12,15 17,10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Exportar
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-container">
+    <div class="filters-grid">
+      <!-- Fecha desde -->
+      <div class="filter-group">
+        <label>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          Fecha desde
+        </label>
+        <input 
+          type="date" 
+          [(ngModel)]="dateFrom" 
+          (ngModelChange)="onFilterChange()"
+          class="filter-input">
+      </div>
+
+      <!-- Fecha hasta -->
+      <div class="filter-group">
+        <label>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          Fecha hasta
+        </label>
+        <input 
+          type="date" 
+          [(ngModel)]="dateTo" 
+          (ngModelChange)="onFilterChange()"
+          class="filter-input">
+      </div>
+
+      <!-- Paciente -->
+      <div class="filter-group">
+        <label>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Paciente
+        </label>
+        <select 
+          [(ngModel)]="selectedChild" 
+          (ngModelChange)="onFilterChange()"
+          class="filter-input">
+          <option value="">Todos los pacientes</option>
+          <option *ngFor="let child of children" [value]="child.id">
+            {{ child.nombre }} {{ child.apellidoPaterno }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Doctor -->
+      <div class="filter-group">
+        <label>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            <rect x="2" y="6" width="20" height="2"></rect>
+          </svg>
+          Doctor
+        </label>
+        <select 
+          [(ngModel)]="selectedDoctor" 
+          (ngModelChange)="onFilterChange()"
+          class="filter-input">
+          <option value="">Todos los doctores</option>
+          <option *ngFor="let doctor of doctors" [value]="doctor">{{ doctor }}</option>
+        </select>
+      </div>
+
+      <!-- Motivo -->
+      <div class="filter-group">
+        <label>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 11H5a2 2 0 0 0-2 2v3c0 1.1.9 2 2 2h4m-4-4l4-4m6 6v9a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2m6 0V4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v3"></path>
+          </svg>
+          Motivo
+        </label>
+        <select 
+          [(ngModel)]="selectedReason" 
+          (ngModelChange)="onFilterChange()"
+          class="filter-input">
+          <option value="">Todos los motivos</option>
+          <option *ngFor="let reason of reasons" [value]="reason">{{ reason }}</option>
+        </select>
+      </div>
+
+      <!-- Búsqueda -->
+      <div class="filter-group search-group">
+        <label>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          Buscar
+        </label>
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          (ngModelChange)="onFilterChange()"
+          placeholder="Buscar en consultas..."
+          class="filter-input">
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <button class="btn-clear" (click)="clearFilters()">Limpiar Filtros</button>
+      <span class="results-count">{{ filteredConsultations.length }} resultado(s)</span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="loading-spinner"></div>
+    <p>Cargando historial...</p>
+  </div>
+
+  <!-- Sin resultados -->
+  <div class="no-results" *ngIf="!loading && filteredConsultations.length === 0">
+    <div class="no-results-icon">
+      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 11H5a2 2 0 0 0-2 2v3c0 1.1.9 2 2 2h4m-4-4l4-4m6 6v9a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2m6 0V4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v3"></path>
+      </svg>
+    </div>
+    <h3>No se encontraron consultas</h3>
+    <p>{{ consultations.length === 0 ? 'Aún no tienes consultas registradas' : 'Intenta ajustar los filtros de búsqueda' }}</p>
+  </div>
+
+  <!-- Tabla de resultados -->
+  <div class="table-container" *ngIf="!loading && filteredConsultations.length > 0">
+    <div class="table-wrapper">
+      <table class="consultations-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Horario</th>
+            <th>Doctor</th>
+            <th>Paciente</th>
+            <th>Motivo de la consulta</th>
+            <th>Diagnóstico</th>
+            <th>Tratamiento</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let consultation of filteredConsultations; let i = index" class="consultation-row">
+            <td class="id-column">{{ (i + 1).toString().padStart(6, '0') }}</td>
+            <td class="date-column">{{ consultation.formattedDate }}</td>
+            <td class="time-column">{{ consultation.time }}</td>
+            <td class="doctor-column">{{ consultation.doctor }}</td>
+            <td class="patient-column">{{ consultation.childName }}</td>
+            <td class="reason-column">{{ consultation.reason }}</td>
+            <td class="diagnosis-column">
+              <div class="diagnosis-content" [title]="consultation.diagnosis">
+                {{ consultation.diagnosis }}
+              </div>
+            </td>
+            <td class="treatment-column">
+              <div class="treatment-content" [title]="consultation.treatment">
+                {{ consultation.treatment }}
+              </div>
+            </td>
+            <td class="status-column">
+              <span class="status-badge" [class]="getStatusClass(consultation.status)">
+                {{ getStatusText(consultation.status) }}
+              </span>
+            </td>
+            <td class="actions-column">
+              <button class="btn-action" title="Ver detalles">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Nota para la versión del cliente -->
+  <div class="client-note" *ngIf="!loading && filteredConsultations.length > 0">
+    <p><strong>Nota:</strong> Este historial muestra únicamente las consultas de tus hijos registrados. Los datos del tutor y número de contacto son privados para proteger tu información personal.</p>
+  </div>
+</div>

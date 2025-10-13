@@ -135,4 +135,11 @@ export class AuthService {
     // 3. Vinculamos esta nueva credencial a la cuenta del usuario actual
     return await linkWithCredential(this.currentUser, credential);
   }
+    // --- OBTENER EL PERFIL DE UN USUARIO DESDE FIRESTORE ---
+  async getUserProfile(uid: string) {
+    const userDocRef = doc(this.firestore, `users/${uid}`);
+    const docSnap = await getDoc(userDocRef);
+    // Si el documento existe, devuelve sus datos; si no, devuelve null.
+    return docSnap.exists() ? docSnap.data() : null;
+  }
 }

@@ -12,8 +12,8 @@
       </div>
     </div>
 
-    <!-- Menu Items -->
-    <div class="navbar-menu">
+    <!-- Menu Items - Visitante -->
+    <div class="navbar-menu" *ngIf="!isLoggedIn">
       <ul class="navbar-nav">
         <li class="nav-item">
           <a routerLink="/inicio" routerLinkActive="active" class="nav-link">Inicio</a>
@@ -30,10 +30,37 @@
       </ul>
     </div>
 
-    <!-- Auth Buttons -->
-    <div class="navbar-auth">
+    <!-- Menu Items - Usuario Logueado -->
+    <div class="navbar-menu" *ngIf="isLoggedIn">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a routerLink="/perfil" routerLinkActive="active" class="nav-link">Perfil</a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/agendar-cita" routerLinkActive="active" class="nav-link">Agendar Cita</a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/citas-agendadas" routerLinkActive="active" class="nav-link">Citas agendadas</a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/historial-consultas" routerLinkActive="active" class="nav-link">Historial de Consultas</a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/historial-recetas" routerLinkActive="active" class="nav-link">Historial de Recetas</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Auth Buttons - Visitante -->
+    <div class="navbar-auth" *ngIf="!isLoggedIn">
       <button class="btn-login" routerLink="/login">Iniciar Sesión</button>
       <button class="btn-register" routerLink="/registro">Registrarse</button>
+    </div>
+
+    <!-- User Menu - Usuario Logueado -->
+    <div class="navbar-auth" *ngIf="isLoggedIn">
+      <span class="user-greeting">Hola, {{ currentUser?.displayName || 'Usuario' }}</span>
+      <button class="btn-logout" (click)="logout()">Cerrar Sesión</button>
     </div>
   </div>
 </nav>

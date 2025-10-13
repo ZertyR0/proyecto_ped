@@ -1,0 +1,217 @@
+<div class="agendar-cita-container">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>Agendar Cita</h1>
+    <p>Selecciona una fecha y horario disponible para tu cita odontológica</p>
+  </div>
+
+  <!-- Progress Steps -->
+  <div class="progress-steps">
+    <div class="step" [class.active]="step >= 1" [class.completed]="step > 1">
+      <div class="step-number">1</div>
+      <span>Fecha</span>
+    </div>
+    <div class="step-line" [class.completed]="step > 1"></div>
+    <div class="step" [class.active]="step >= 2" [class.completed]="step > 2">
+      <div class="step-number">2</div>
+      <span>Horario</span>
+    </div>
+    <div class="step-line" [class.completed]="step > 2"></div>
+    <div class="step" [class.active]="step >= 3" [class.completed]="step > 3">
+      <div class="step-number">3</div>
+      <span>Datos</span>
+    </div>
+    <div class="step-line" [class.completed]="step > 3"></div>
+    <div class="step" [class.active]="step >= 4">
+      <div class="step-number">4</div>
+      <span>Confirmación</span>
+    </div>
+  </div>
+
+  <!-- Paso 1: Selección de Fecha -->
+  <div class="step-content" *ngIf="isStepActive(1)">
+    <div class="calendar-container">
+      <div class="calendar-header">
+        <button class="btn-nav" (click)="previousMonth()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15,18 9,12 15,6"></polyline>
+          </svg>
+        </button>
+        <h2>{{ currentMonthName }}</h2>
+        <button class="btn-nav" (click)="nextMonth()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9,18 15,12 9,6"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <div class="calendar-grid">
+        <div class="calendar-header-days">
+          <div class="day-header">Dom</div>
+          <div class="day-header">Lun</div>
+          <div class="day-header">Mar</div>
+          <div class="day-header">Mié</div>
+          <div class="day-header">Jue</div>
+          <div class="day-header">Vie</div>
+          <div class="day-header">Sáb</div>
+        </div>
+
+        <div class="calendar-days" *ngIf="!loadingCalendar">
+          <div 
+            class="calendar-day" 
+            *ngFor="let day of calendarDays"
+            [class.today]="day.isToday"
+            [class.past]="day.isPast"
+            [class.other-month]="day.month !== currentMonth.getMonth()"
+            [class.selected]="day.isSelected"
+            [class.available]="isDayAvailable(day)"
+            [class.clickable]="isDayAvailable(day)"
+            (click)="isDayAvailable(day) ? selectDate(day) : null"
+            [style.cursor]="isDayAvailable(day) ? 'pointer' : 'not-allowed'">
+            <span class="day-number">{{ day.day }}</span>
+          </div>
+        </div>
+
+        <div class="loading-calendar" *ngIf="loadingCalendar">
+          <div class="spinner"></div>
+          <p>Cargando disponibilidad...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paso 2: Selección de Horario -->
+  <div class="step-content" *ngIf="isStepActive(2)">
+    <div class="time-selection">
+      <div class="selected-date-info">
+        <h3>{{ selectedDateFormatted }}</h3>
+        <button class="btn-change" (click)="goToStep(1)">Cambiar fecha</button>
+      </div>
+
+      <div class="time-slots">
+        <h4>Horarios disponibles</h4>
+        <div class="time-grid">
+          <button 
+            class="time-slot"
+            *ngFor="let slot of getSelectedDayTimeSlots()"
+            [class.available]="slot.available"
+            [class.selected]="isTimeSlotSelected(slot.hour)"
+            [disabled]="!slot.available"
+            (click)="selectTime(slot)">
+            {{ slot.hour }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paso 3: Datos de la Cita -->
+  <div class="step-content" *ngIf="isStepActive(3)">
+    <div class="appointment-form">
+      <div class="appointment-summary">
+        <h3>Resumen de tu cita</h3>
+        <div class="summary-item">
+          <strong>Fecha:</strong> {{ selectedDateFormatted }}
+        </div>
+        <div class="summary-item">
+          <strong>Horario:</strong> {{ selectedTimeSlot }}
+        </div>
+        <div class="summary-actions">
+          <button class="btn-change" (click)="goToStep(1)">Cambiar fecha</button>
+          <button class="btn-change" (click)="goToStep(2)">Cambiar horario</button>
+        </div>
+      </div>
+
+      <form [formGroup]="appointmentForm" (ngSubmit)="submitAppointment()">
+        <div class="form-group">
+          <label>Paciente *</label>
+          <select formControlName="childId" [class.error]="isFieldInvalidAndTouched('childId')">
+            <option value="">Selecciona un paciente</option>
+            <option *ngFor="let child of children" [value]="child.id">
+              {{ child.nombre }} {{ child.apellidoPaterno }} {{ child.apellidoMaterno }}
+            </option>
+          </select>
+          <div class="error-msg" *ngIf="isFieldInvalidAndTouched('childId')">
+            <small>Debes seleccionar un paciente</small>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Motivo de la consulta *</label>
+          <textarea 
+            formControlName="reason" 
+            placeholder="Describe brevemente el motivo de la consulta (ej: dolor de muela, limpieza, revisión general...)"
+            rows="3"
+            [class.error]="isFieldInvalidAndTouched('reason')">
+          </textarea>
+          <div class="error-msg" *ngIf="isFieldInvalidAndTouched('reason')">
+            <small>{{ getFieldError('reason') }}</small>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Notas adicionales</label>
+          <textarea 
+            formControlName="notes" 
+            placeholder="Información adicional que consideres importante (medicamentos, alergias específicas, etc.)"
+            rows="3">
+          </textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="goToStep(2)">Volver</button>
+          <button type="submit" class="btn-primary" [disabled]="appointmentForm.invalid || loading">
+            {{ loading ? 'Agendando...' : 'Agendar Cita' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Paso 4: Confirmación -->
+  <div class="step-content" *ngIf="isConfirmationStep()">
+    <div class="confirmation">
+      <div class="success-icon">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22,4 12,14.01 9,11.01"></polyline>
+        </svg>
+      </div>
+      
+      <h2>¡Cita Agendada Exitosamente!</h2>
+      <p>Tu cita ha sido registrada. Te enviaremos un recordatorio por correo electrónico.</p>
+
+      <div class="appointment-details">
+        <div class="detail-item">
+          <span class="label">Paciente:</span>
+          <span class="value">{{ confirmationData.childName }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Fecha:</span>
+          <span class="value">{{ confirmationData.formattedDate }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Horario:</span>
+          <span class="value">{{ confirmationData.time }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Motivo:</span>
+          <span class="value">{{ confirmationData.reason }}</span>
+        </div>
+        <div class="detail-item" *ngIf="confirmationData.notes">
+          <span class="label">Notas:</span>
+          <span class="value">{{ confirmationData.notes }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Estado:</span>
+          <span class="value status-pending">Pendiente de confirmación</span>
+        </div>
+      </div>
+
+      <div class="confirmation-actions">
+        <button class="btn-primary" (click)="newAppointment()">Agendar otra cita</button>
+        <button class="btn-secondary" routerLink="/citas-agendadas">Ver mis citas</button>
+      </div>
+    </div>
+  </div>
+</div>

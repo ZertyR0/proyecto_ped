@@ -104,6 +104,32 @@
         box-shadow: 0 4px 12px rgba(91, 155, 213, 0.3);
       }
     }
+
+    .user-greeting {
+      color: #666;
+      font-weight: 500;
+      padding: 0.6rem 1rem;
+      white-space: nowrap;
+    }
+
+    .btn-logout {
+      padding: 0.6rem 1.5rem;
+      border-radius: 25px;
+      font-weight: 400;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background-color: #dc3545;
+      color: white;
+      border: 1px solid #dc3545;
+
+      &:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+      }
+    }
   }
 }
 
