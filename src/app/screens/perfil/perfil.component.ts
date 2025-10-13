@@ -1,9 +1,9 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
-import { Firestore, doc, getDoc, collection, getDocs } from '@angular/fire/firestore';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { User } from '@angular/fire/auth';
+import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 
+// Interfaces (las que ya tenías)
 interface UserProfile {
   uid: string;
   email: string;
@@ -13,8 +13,8 @@ interface UserProfile {
   telefono: string;
   rol: string;
 }
-
 interface Child {
+  id: string; 
   nombre: string;
   apellidoPaterno: string;
   apellidoMaterno: string;
@@ -29,11 +29,10 @@ interface Child {
   styleUrls: ['./perfil.component.scss']
 })
 export class PerfilComponent implements OnInit {
-  private auth = inject(Auth);
-  private firestore = inject(Firestore);
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
 
+  // --- Propiedades del componente ---
   currentUser: User | null = null;
   userProfile: UserProfile | null = null;
   children: Child[] = [];
@@ -41,105 +40,133 @@ export class PerfilComponent implements OnInit {
   editMode = false;
   editChildrenMode = false;
 
-  profileForm: FormGroup = this.fb.group({
-    nombre: ['', [Validators.required, Validators.minLength(2)]],
-    apellidoP: ['', [Validators.required]],
-    apellidoM: [''],
-    telefono: ['', [Validators.required]]
+  // --- 1. SE CREA UN ÚNICO FORMULARIO PRINCIPAL QUE CONTENDRÁ TODO ---
+  perfilPageForm: FormGroup = this.fb.group({
+    // a) Un FormGroup anidado para los datos del tutor
+    tutor: this.fb.group({
+      nombre: ['', [Validators.required, Validators.minLength(2)]],
+      apellidoP: ['', [Validators.required]],
+      apellidoM: [''],
+      telefono: ['', [
+        Validators.required,
+        Validators.minLength(10),
+        Validators.maxLength(10),
+        Validators.pattern('^[0-9]*$')
+      ]]
+    }),
+    // b) Un FormArray anidado para los hijos
+    hijos: this.fb.array([])
   });
 
+  // --- 2. GETTERS PARA ACCEDER FÁCILMENTE A CADA PARTE DEL FORMULARIO ---
+  get tutorForm(): FormGroup {
+    return this.perfilPageForm.get('tutor') as FormGroup;
+  }
+  get childrenForm(): FormArray {
+    return this.perfilPageForm.get('hijos') as FormArray;
+  }
+
   ngOnInit() {
-    onAuthStateChanged(this.auth, async (user) => {
-      if (user) {
-        this.currentUser = user;
-        await this.loadUserProfile();
-        await this.loadChildren();
-      }
+    this.currentUser = this.authService.currentUser;
+    if (this.currentUser) {
+      this.loadUserProfileAndChildren(this.currentUser.uid);
+    } else {
+      this.loading = false; // O redirigir a login
+    }
+  }
+
+  async loadUserProfileAndChildren(uid: string) {
+    try {
+      this.userProfile = (await this.authService.getUserProfile(uid)) as UserProfile;
+      // Llenamos la parte del tutor del formulario
+      if (this.userProfile) this.tutorForm.patchValue(this.userProfile);
+      
+      this.authService.getChildrenForTutor(uid).subscribe(childrenData => {
+        this.children = childrenData as Child[];
+        // Llenamos la parte de los hijos del formulario
+        this.buildChildrenForm();
+        this.loading = false;
+      });
+    } catch (error) {
+      console.error('Error al cargar datos:', error);
       this.loading = false;
+    }
+  }
+
+  buildChildrenForm() {
+    this.childrenForm.clear();
+    this.children.forEach(child => {
+      this.childrenForm.push(this.createChildFormGroup(child));
     });
   }
 
-  async loadUserProfile() {
-    if (!this.currentUser) return;
-    
+  createChildFormGroup(child: Child): FormGroup {
+    return this.fb.group({
+      nombre: [child.nombre, [Validators.required]],
+      apellidoPaterno: [child.apellidoPaterno, [Validators.required]],
+      apellidoMaterno: [child.apellidoMaterno],
+      fechaNacimiento: [child.fechaNacimiento, [Validators.required]],
+      sexo: [child.sexo, [Validators.required]],
+      alergias: [child.alergias]
+    });
+  }
+
+  formatPhoneNumber(event: any): void {
+    const input = event.target;
+    const digitsOnly = input.value.replace(/\D/g, '').substring(0, 10);
+    // Apuntamos al control correcto dentro del sub-grupo 'tutor'
+    this.tutorForm.controls['telefono'].setValue(digitsOnly, { emitEvent: false });
+    let formattedValue = digitsOnly;
+    if (digitsOnly.length > 6) {
+      formattedValue = `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(3, 6)}-${digitsOnly.slice(6)}`;
+    } else if (digitsOnly.length > 3) {
+      formattedValue = `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(3)}`;
+    }
+    input.value = formattedValue;
+  }
+
+  async saveProfile() {
+    if (this.tutorForm.invalid || !this.currentUser) return;
     try {
-      const userDocRef = doc(this.firestore, `users/${this.currentUser.uid}`);
-      const docSnap = await getDoc(userDocRef);
-      
-      if (docSnap.exists()) {
-        this.userProfile = docSnap.data() as UserProfile;
-        this.updateProfileForm();
+      const updatedData = this.tutorForm.value;
+      await this.authService.updateUserProfile(this.currentUser.uid, updatedData);
+      if (this.userProfile) {
+        this.userProfile = { ...this.userProfile, ...updatedData };
       }
-    } catch (error) {
-      console.error('Error al cargar perfil:', error);
-    }
+      this.editMode = false;
+    } catch (error) { console.error('Error al actualizar perfil:', error); }
   }
 
-  async loadChildren() {
-    if (!this.currentUser) return;
-    
+  async saveChildren() {
+    if (this.childrenForm.invalid || !this.currentUser) return;
     try {
-      const childrenCollectionRef = collection(this.firestore, `users/${this.currentUser.uid}/children`);
-      const querySnapshot = await getDocs(childrenCollectionRef);
-      
-      this.children = [];
-      querySnapshot.forEach((doc) => {
-        this.children.push(doc.data() as Child);
+      const promises = this.childrenForm.controls.map((control, index) => {
+        const childId = this.children[index].id;
+        return this.authService.updateChildProfile(this.currentUser!.uid, childId, control.value);
       });
-    } catch (error) {
-      console.error('Error al cargar hijos:', error);
-    }
-  }
-
-  updateProfileForm() {
-    if (this.userProfile) {
-      this.profileForm.patchValue({
-        nombre: this.userProfile.nombre,
-        apellidoP: this.userProfile.apellidoP,
-        apellidoM: this.userProfile.apellidoM,
-        telefono: this.userProfile.telefono
-      });
-    }
+      await Promise.all(promises);
+      this.editChildrenMode = false;
+    } catch (error) { console.error('Error al actualizar hijos:', error); }
   }
 
   toggleEditMode() {
     this.editMode = !this.editMode;
-    if (!this.editMode) {
-      this.updateProfileForm(); // Restaurar valores originales si se cancela
-    }
+    if (!this.editMode && this.userProfile) this.tutorForm.patchValue(this.userProfile);
   }
 
   toggleEditChildrenMode() {
     this.editChildrenMode = !this.editChildrenMode;
-  }
-
-  async saveProfile() {
-    if (this.profileForm.invalid || !this.currentUser) {
-      this.profileForm.markAllAsTouched();
-      return;
-    }
-
-    try {
-      const updatedData = this.profileForm.value;
-      await this.authService.updateUserProfile(this.currentUser.uid, updatedData);
-      
-      // Actualizar el objeto local
-      if (this.userProfile) {
-        this.userProfile = { ...this.userProfile, ...updatedData };
-      }
-      
-      this.editMode = false;
-      // Aquí podrías mostrar un mensaje de éxito
-    } catch (error) {
-      console.error('Error al actualizar perfil:', error);
-      // Aquí podrías mostrar un mensaje de error
+    if (!this.editChildrenMode) { // Si se cancela, reconstruir para descartar cambios
+      this.buildChildrenForm();
     }
   }
-
+  
   formatDate(dateString: string): string {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES');
+    // Añadimos un día para corregir el desfase de zona horaria
+    date.setDate(date.getDate() + 1);
+    return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
   calculateAge(dateString: string): number {
@@ -147,12 +174,11 @@ export class PerfilComponent implements OnInit {
     const birthDate = new Date(dateString);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
     }
-    
     return age;
   }
 }
+

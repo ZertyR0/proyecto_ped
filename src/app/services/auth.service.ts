@@ -10,7 +10,8 @@ import {
   EmailAuthProvider,
   linkWithCredential
 } from '@angular/fire/auth';
-import { Firestore, doc, setDoc, getDoc, collection, addDoc, updateDoc } from '@angular/fire/firestore';
+import { Firestore, doc, setDoc, getDoc, collection, addDoc, updateDoc, collectionData } from '@angular/fire/firestore';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 export interface TutorRegisterData {
@@ -141,5 +142,19 @@ export class AuthService {
     const docSnap = await getDoc(userDocRef);
     // Si el documento existe, devuelve sus datos; si no, devuelve null.
     return docSnap.exists() ? docSnap.data() : null;
+  }
+
+  // --- OBTENER LOS HIJOS DE UN TUTOR  ---
+  getChildrenForTutor(tutorId: string): Observable<any[]> {
+    const childrenRef = collection(this.firestore, `users/${tutorId}/children`);
+    // collectionData devuelve un Observable, lo que significa que la lista se actualizará en tiempo real
+    return collectionData(childrenRef, { idField: 'id' });
+  }
+
+  // --- ACTUALIZAR EL PERFIL DE UN HIJO ESPECÍFICO ---
+  async updateChildProfile(tutorId: string, childId: string, data: any) {
+    // Apuntamos directamente al documento del hijo usando su ID
+    const childDocRef = doc(this.firestore, `users/${tutorId}/children/${childId}`);
+    return await updateDoc(childDocRef, data);
   }
 }
