@@ -72,6 +72,26 @@ export class AgendarCitaComponent implements OnInit {
   ngOnInit() {
     this.loadChildren();
     this.generateCalendar();
+    // Escuchar cambios en citas para refrescar disponibilidad cuando se cancela o modifica una cita
+    window.addEventListener('citas:changed', this.onCitasChanged as EventListener);
+  }
+
+  ngOnDestroy() {
+    try { window.removeEventListener('citas:changed', this.onCitasChanged as EventListener); } catch(e) {}
+  }
+
+  private onCitasChanged = async (ev: Event) => {
+    try {
+      const detail: any = (ev as CustomEvent).detail;
+      if (!detail || !detail.date) return;
+      // Si el usuario tiene actualmente seleccionada la fecha afectada, refrescar los horarios
+      if (this.selectedDate && this.selectedDate.toISOString().split('T')[0] === detail.date) {
+        await this.updateTimeSlotsForDate(this.selectedDate);
+      }
+      // También podríamos regenerar el calendario si se prefiere
+    } catch (err) {
+      // ignore
+    }
   }
 
   loadChildren() {

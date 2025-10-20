@@ -41,18 +41,23 @@ export class AppointmentService {
     if (!user) return [];
 
     const appointmentsRef = collection(this.firestore, 'appointments');
-    const q = query(
-      appointmentsRef, 
-      where('userId', '==', user),
-      orderBy('date', 'desc'),
-      orderBy('time', 'desc')
-    );
+    // To avoid requiring a composite index (userId + date + time),
+    // query only by userId and perform ordering by date+time on the client.
+    const q = query(appointmentsRef, where('userId', '==', user));
 
     const querySnapshot = await getDocs(q);
     const appointments: Appointment[] = [];
-    
+
     querySnapshot.forEach((doc) => {
       appointments.push({ id: doc.id, ...doc.data() } as Appointment);
+    });
+
+    // Sort by date desc, then time desc locally (date stored as YYYY-MM-DD, time as HH:MM)
+    appointments.sort((a, b) => {
+      if (a.date === b.date) {
+        return b.time.localeCompare(a.time);
+      }
+      return b.date.localeCompare(a.date);
     });
 
     return appointments;
@@ -60,17 +65,19 @@ export class AppointmentService {
 
   async getAppointmentsByDate(date: string): Promise<Appointment[]> {
     const appointmentsRef = collection(this.firestore, 'appointments');
-    const q = query(
-      appointmentsRef,
-      where('date', '==', date),
-      where('status', 'in', ['pending', 'confirmed'])
-    );
+    // Avoid using 'in' together with other filters to reduce the chance of
+    // requiring composite indexes. Query by date and filter status client-side.
+    const q = query(appointmentsRef, where('date', '==', date));
 
     const querySnapshot = await getDocs(q);
     const appointments: Appointment[] = [];
-    
+
     querySnapshot.forEach((doc) => {
-      appointments.push({ id: doc.id, ...doc.data() } as Appointment);
+      const data = { id: doc.id, ...doc.data() } as Appointment;
+      // Keep only pending/confirmed for availability checks
+      if (data.status === 'pending' || data.status === 'confirmed') {
+        appointments.push(data);
+      }
     });
 
     return appointments;
@@ -103,7 +110,7 @@ export class AppointmentService {
 
     const bookedAppointments = await this.getAppointmentsByDate(date);
     const bookedTimes = bookedAppointments.map(appointment => appointment.time);
-    
+
     return allTimeSlots.filter(time => !bookedTimes.includes(time));
   }
 }

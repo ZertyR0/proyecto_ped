@@ -90,7 +90,7 @@
         <button 
           class="btn-cancel" 
           *ngIf="appointment.canCancel"
-          (click)="cancelAppointment(appointment)">
+          (click)="openCancelModal(appointment)">
           Cancelar Cita
         </button>
         <div class="action-info" *ngIf="isPendingStatus(appointment)">
@@ -140,3 +140,10 @@
     </div>
   </div>
 </div>
+  <!-- Modal de confirmación de cancelación -->
+  <app-cancel-cita
+    #cancelModal
+    *ngIf="showCancelModal"
+    [appointment]="selectedAppointment"
+    (confirmed)="onCancelConfirmed($event)">
+  </app-cancel-cita>

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Firestore, collection, addDoc, query, where, getDocs, Timestamp } from '@angular/fire/firestore';
+import { Firestore, collection, addDoc, query, where, getDocs, Timestamp, doc, updateDoc } from '@angular/fire/firestore';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable({
@@ -9,6 +9,47 @@ import { firstValueFrom } from 'rxjs';
 export class CitasService {
   private firestore = inject(Firestore);
   private http = inject(HttpClient);
+
+  /**
+   * Obtiene todas las citas pertenecientes a un tutor (tutorId) y las devuelve ordenadas
+   * por fecha (desc) y hora (desc) para mostrarlas en el historial.
+   */
+  async getAppointmentsForTutor(tutorId: string) {
+    const collectionRef = collection(this.firestore, 'citas');
+    try {
+      const q = query(collectionRef, where('tutorId', '==', tutorId));
+      const snap = await getDocs(q);
+      const appointments: any[] = [];
+      snap.forEach(doc => {
+        const data = doc.data() as any;
+        // Normalize date/time if needed
+        let dateStr = data.date;
+        if (!dateStr && data.fecha && (data.fecha as any).toDate) {
+          dateStr = (data.fecha as any).toDate().toISOString().split('T')[0];
+        }
+        let timeStr = data.time;
+        if (!timeStr && data.fecha && (data.fecha as any).toDate) {
+          const dt: Date = (data.fecha as any).toDate();
+          const hh = String(dt.getHours()).padStart(2, '0');
+          const mm = String(dt.getMinutes()).padStart(2, '0');
+          timeStr = `${hh}:${mm}`;
+        }
+
+        appointments.push({ id: doc.id, ...data, date: dateStr, time: timeStr });
+      });
+
+      // Sort by date desc then time desc (strings in YYYY-MM-DD and HH:MM format sort lexicographically)
+      appointments.sort((a, b) => {
+        if (a.date === b.date) return (b.time || '').localeCompare(a.time || '');
+        return (b.date || '').localeCompare(a.date || '');
+      });
+
+      return appointments;
+    } catch (err) {
+      console.error('Error fetching appointments for tutor:', err);
+      return [];
+    }
+  }
 
   /**
    * Comprueba si ya existe una cita para una fecha (YYYY-MM-DD) y hora (HH:MM).
@@ -70,7 +111,10 @@ export class CitasService {
       time: (data.time || '').toString().slice(0,5),
       // Convertimos la fecha a un Timestamp de Firebase. Esto es crucial para poder ordenar y filtrar por fecha correctamente.
       fecha: Timestamp.fromDate(appointmentDate),
-      estado: 'confirmada' // Estado inicial de la cita
+      // Estado inicial: cuando un tutor agenda, la cita queda pendiente
+      status: 'pending',
+      // Mantener campo en español por compatibilidad con datos antiguos
+      estado: 'pendiente'
     };
 
     //  Apuntamos a la colección 'citas' y añadimos el nuevo documento.
@@ -80,6 +124,25 @@ export class CitasService {
       return docRef.id; // Devolvemos el ID de la nueva cita.
     } catch (err) {
       throw err; // re-lanzar para que el componente lo maneje
+    }
+  }
+
+  /**
+   * Actualiza el estado de una cita en la colección 'citas'.
+   * Es seguro usar esto cuando el doctor confirma una cita (status: 'confirmed').
+   */
+  async updateAppointmentStatus(appointmentId: string, status: 'pending' | 'confirmed' | 'completed' | 'cancelled'): Promise<void> {
+    try {
+      const appointmentRef = doc(this.firestore, 'citas', appointmentId);
+      const esMap: any = { pending: 'pendiente', confirmed: 'confirmada', completed: 'completada', cancelled: 'cancelada' };
+      await updateDoc(appointmentRef, {
+        status: status,
+        estado: esMap[status] || status,
+        updatedAt: new Date()
+      });
+    } catch (err) {
+      console.error('Error updating appointment status:', err);
+      throw err;
     }
   }
 
@@ -109,6 +172,17 @@ export class CitasService {
       if (!querySnapshot.empty) {
         querySnapshot.forEach((doc) => {
           const data = doc.data() as any;
+          // Normalize status: prefer English 'status' field; fall back to Spanish 'estado'
+          if (!data.status && data.estado) {
+            const es = (data.estado || '').toString().toLowerCase();
+            const map: any = { 'pendiente': 'pending', 'confirmada': 'confirmed', 'confirmado': 'confirmed', 'cancelada': 'cancelled', 'completada': 'completed' };
+            data.status = map[es] || es;
+          }
+          // Only include appointments that are active for availability purposes
+          if (data.status && !['pending', 'confirmed'].includes(data.status)) {
+            // skip cancelled/completed/etc
+            return;
+          }
           let timeStr = data.time;
           if (!timeStr && data.fecha && (data.fecha as any).toDate) {
             const dt: Date = (data.fecha as any).toDate();
@@ -144,6 +218,16 @@ export class CitasService {
 
       querySnapshot.forEach((doc) => {
         const data = doc.data() as any;
+        // Normalize status if necessary
+        if (!data.status && data.estado) {
+          const es = (data.estado || '').toString().toLowerCase();
+          const map: any = { 'pendiente': 'pending', 'confirmada': 'confirmed', 'confirmado': 'confirmed', 'cancelada': 'cancelled', 'completada': 'completed' };
+          data.status = map[es] || es;
+        }
+        // If the appointment is not active, skip it for the day's availability
+        if (data.status && !['pending', 'confirmed'].includes(data.status)) {
+          return;
+        }
         // If we queried by tutorId only, we must filter docs to the target day using 'date' or 'fecha'
         let dateStr = data.date;
         if (!dateStr && data.fecha && (data.fecha as any).toDate) {

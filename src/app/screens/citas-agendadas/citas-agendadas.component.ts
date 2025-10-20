@@ -1,6 +1,7 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
 import { AppointmentService, Appointment } from '../../services/appointment.service';
+import { CitasService } from '../../services/citas.service';
 
 interface AppointmentCard extends Appointment {
   formattedDate: string;
@@ -21,6 +22,7 @@ interface AppointmentCard extends Appointment {
 export class CitasAgendadasComponent implements OnInit {
   private auth = inject(Auth);
   private appointmentService = inject(AppointmentService);
+  private citasService = inject(CitasService);
 
   appointments: AppointmentCard[] = [];
   filteredAppointments: AppointmentCard[] = [];
@@ -41,6 +43,11 @@ export class CitasAgendadasComponent implements OnInit {
     this.loadAppointments();
   }
 
+  // Modal state for cancel confirmation
+  selectedAppointment: AppointmentCard | null = null;
+  showCancelModal = false;
+  @ViewChild('cancelModal', { static: false }) cancelModalRef: any;
+
   setCurrentWeek() {
     const today = new Date();
     const dayOfWeek = today.getDay();
@@ -54,8 +61,8 @@ export class CitasAgendadasComponent implements OnInit {
       const user = this.auth.currentUser;
       if (!user) return;
 
-      const rawAppointments = await this.appointmentService.getUserAppointments();
-      this.appointments = rawAppointments.map(appointment => this.enhanceAppointment(appointment));
+  const rawAppointments = await this.citasService.getAppointmentsForTutor(user.uid);
+  this.appointments = rawAppointments.map(appointment => this.enhanceAppointment(appointment as Appointment));
       
       this.updateFilterCounts();
       this.applyFilter(this.selectedFilter);
@@ -67,7 +74,16 @@ export class CitasAgendadasComponent implements OnInit {
   }
 
   enhanceAppointment(appointment: Appointment): AppointmentCard {
-    const appointmentDate = new Date(appointment.date);
+    // Parse date string YYYY-MM-DD as local date (avoid timezone shifts with ISO parsing)
+    let appointmentDate: Date;
+    if (appointment.date && typeof appointment.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(appointment.date)) {
+      const [y, m, d] = appointment.date.split('-').map(Number);
+      appointmentDate = new Date(y, m - 1, d);
+    } else if ((appointment as any).fecha && ((appointment as any).fecha as any).toDate) {
+      appointmentDate = ((appointment as any).fecha as any).toDate();
+    } else {
+      appointmentDate = new Date(appointment.date || Date.now());
+    }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     appointmentDate.setHours(0, 0, 0, 0);
@@ -178,33 +194,56 @@ export class CitasAgendadasComponent implements OnInit {
     });
   }
 
-  async cancelAppointment(appointment: AppointmentCard) {
+  openCancelModal(appointment: AppointmentCard) {
     if (!appointment.canCancel || !appointment.id) return;
+    this.selectedAppointment = appointment;
+    this.showCancelModal = true;
+  }
 
-    const confirmed = confirm(
-      `¿Estás seguro de que deseas cancelar la cita del ${appointment.formattedDate} a las ${appointment.time}?`
-    );
-
-    if (!confirmed) return;
-
-    try {
-      await this.appointmentService.cancelAppointment(appointment.id);
-      
-      // Actualizar el estado local
-      appointment.status = 'cancelled';
-      appointment.statusText = this.getStatusText('cancelled');
-      appointment.statusClass = this.getStatusClass('cancelled');
-      appointment.canCancel = false;
-
-      this.updateFilterCounts();
-      this.applyFilter(this.selectedFilter);
-      
-      // Mostrar mensaje de éxito (puedes implementar un toast service)
-      alert('Cita cancelada exitosamente');
-    } catch (error) {
-      console.error('Error al cancelar cita:', error);
-      alert('Error al cancelar la cita. Inténtalo de nuevo.');
+  async onCancelConfirmed(confirmed: boolean) {
+    if (!this.selectedAppointment) {
+      this.showCancelModal = false;
+      return;
     }
+
+    // If the modal emitted false, the user closed/cancelled the dialog: close modal
+    if (!confirmed) {
+      this.showCancelModal = false;
+      this.selectedAppointment = null;
+      return;
+    }
+
+    if (confirmed) {
+      try {
+        // Preferir CitasService que opera sobre la colección 'citas'
+        if (this.citasService && this.selectedAppointment.id) {
+          await this.citasService.updateAppointmentStatus(this.selectedAppointment.id, 'cancelled' as any);
+        } else {
+          await this.appointmentService.cancelAppointment(this.selectedAppointment.id as string);
+        }
+
+        // Actualizar el estado local
+        this.selectedAppointment.status = 'cancelled';
+        this.selectedAppointment.statusText = this.getStatusText('cancelled');
+        this.selectedAppointment.statusClass = this.getStatusClass('cancelled');
+        this.selectedAppointment.canCancel = false;
+
+        this.updateFilterCounts();
+        this.applyFilter(this.selectedFilter);
+        // Indicar éxito en el modal
+        try { this.cancelModalRef?.showSuccess(); } catch(e) {}
+        try {
+          // Notificar a otras partes de la app (por ejemplo el componente de agendar) que las citas cambiaron
+          const payload = { date: this.selectedAppointment.date, time: this.selectedAppointment.time, id: this.selectedAppointment.id };
+          window.dispatchEvent(new CustomEvent('citas:changed', { detail: payload } as any));
+        } catch (e) {
+          // ignore
+        }
+      } catch (error) {
+        console.error('Error al cancelar cita:', error);
+        try { this.cancelModalRef?.showError((error && (error as any).message) ? (error as any).message : undefined); } catch(e) {}
+      }
+  }
   }
 
   // Navegación de semana (para vista de calendario)

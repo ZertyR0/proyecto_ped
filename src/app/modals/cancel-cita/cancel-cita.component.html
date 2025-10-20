@@ -1,0 +1,36 @@
+<div class="modal-backdrop">
+	<div class="modal-card">
+		<header class="modal-header">
+			<h3>Confirmar cancelación</h3>
+		</header>
+		<section class="modal-body">
+			<ng-container [ngSwitch]="state">
+				<div *ngSwitchCase="'idle'">
+					<p *ngIf="appointment">
+						¿Estás seguro que deseas cancelar la cita del
+						<strong>{{ appointment.formattedDate || appointment.date }}</strong>
+						a las <strong>{{ appointment.time }}</strong>?
+					</p>
+					<p *ngIf="!appointment">¿Estás seguro que deseas cancelar esta cita?</p>
+				</div>
+
+				<div *ngSwitchCase="'loading'" class="modal-loading">
+					<p>Cancelando cita, por favor espera...</p>
+					<div class="loading-spinner small"></div>
+				</div>
+
+				<div *ngSwitchCase="'success'" class="modal-success">
+					<p>La cita fue cancelada correctamente.</p>
+				</div>
+
+				<div *ngSwitchCase="'error'" class="modal-error">
+					<p>{{ errorMessage || 'Error al cancelar la cita.' }}</p>
+				</div>
+			</ng-container>
+		</section>
+		<footer class="modal-footer">
+			<button class="btn btn-secondary" (click)="onClose()" [disabled]="state === 'loading'">Cerrar</button>
+			<button *ngIf="state === 'idle'" class="btn btn-danger" (click)="onConfirm()">Sí, cancelar cita</button>
+		</footer>
+	</div>
+</div>
