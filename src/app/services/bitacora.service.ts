@@ -146,4 +146,58 @@ export class BitacoraService {
     });
     return rows;
   }
+
+  /**
+   * Devuelve un arreglo listo para mostrar en la tabla de historial del tutor,
+   * combinando metadatos de la cita y los campos de la bitácora.
+   */
+  async getHistoryForTutor(tutorId: string): Promise<Array<any>> {
+    if (!tutorId) return [];
+    const col = collection(this.firestore, 'citas');
+    const q = query(col, where('tutorId', '==', tutorId));
+    const snap = await getDocs(q);
+    const rows: any[] = [];
+
+    snap.forEach(docSnap => {
+      const d: any = docSnap.data();
+      const bit = d.bitacora || null;
+      if (bit) {
+        rows.push({
+          id: docSnap.id,
+          date: d.date || (d.fecha && (d.fecha as any).toDate ? (d.fecha as any).toDate().toISOString().split('T')[0] : ''),
+          time: d.time || (d.fecha && (d.fecha as any).toDate ? (() => { const dt=(d.fecha as any).toDate(); return `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`; })() : ''),
+          tutorId: d.tutorId || null,
+          tutorName: d.tutorName || d.tutorEmail || null,
+          tutorPhone: d.tutorPhone || null,
+          patientId: d.childId || null,
+          patientName: d.childName || (bit.patientName || null),
+          reason: d.reason || bit.reason || null,
+          diagnosis: bit.diagnosis || null,
+          treatment: bit.treatment || null,
+          observations: bit.observations || null,
+          nextAppointment: bit.nextAppointment || null,
+          professional: bit.professional || null,
+          status: d.status || d.estado || null,
+          raw: d
+        });
+      }
+    });
+
+    // Ordenar por fecha/hora descendente
+    rows.sort((a,b) => {
+      if (a.date === b.date) return (b.time || '').localeCompare(a.time || '');
+      return (b.date || '').localeCompare(a.date || '');
+    });
+
+    return rows;
+  }
+
+  /**
+   * Convenience: obtener historial del tutor autenticado
+   */
+  async getMyHistory(): Promise<Array<any>> {
+    const user = this.auth.currentUser;
+    if (!user) return [];
+    return this.getHistoryForTutor(user.uid);
+  }
 }
